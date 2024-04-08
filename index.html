@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leitura de arquivo de texto</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 50px;
+    }
+    h2 {
+        margin-bottom: 20px;
+    }
+    #output {
+        margin-top: 20px;
+    }
+</style>
+</head>
+<body>
+
+<h2>Upload de arquivo .txt</h2>
+
+<form id="uploadForm">
+    <input type="file" id="fileInput" accept=".txt" required>
+    <button type="submit">Upload</button>
+</form>
+
+<div id="output">
+    <!-- Resultado da leitura do arquivo será mostrado aqui -->
+</div>
+
+<script>
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        e.preventDefault(); // Evita que o formulário seja submetido
+
+        var file = document.getElementById('fileInput').files[0];
+        var reader = new FileReader();
+
+        reader.onload = function(e) {
+            var contents = e.target.result;
+            var lines = contents.split('\n');
+            var startReading = false;
+            var batchSize = 100; // Tamanho do lote de linhas para processar de uma vez
+            var currentIndex = 0;
+
+            var output = document.getElementById('output');
+            output.innerHTML = '<h2>Produtos e Preços:</h2>';
+
+            function processBatch() {
+                for (var i = 0; i < batchSize && currentIndex < lines.length; i++) {
+                    var line = lines[currentIndex];
+                    if (startReading) {
+                        var parts = line.split('\t');
+                        if (parts.length >= 4) {
+                            var productName = parts[2];
+                            var productPrice = parts[3];
+                            output.innerHTML += '<p><strong>Nome do Produto:</strong> ' + productName.trim() + ', <strong>Preço de Venda:</strong> ' + productPrice.trim() + '</p>';
+                        }
+                    } else {
+                        if (line.trim() === 'ABAS') {
+                            startReading = true;
+                        }
+                    }
+                    currentIndex++;
+                }
+
+                if (currentIndex < lines.length) {
+                    setTimeout(processBatch, 0); // Processa o próximo lote após um pequeno intervalo
+                }
+            }
+
+            processBatch();
+        };
+
+        reader.readAsText(file);
+    });
+</script>
+
+</body>
+</html>
