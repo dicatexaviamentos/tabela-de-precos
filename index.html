@@ -1,82 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabela de Preço</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Processar Produtos</title>
+<style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+</style>
 </head>
 <body>
-    <h1>Tabela de Preço</h1>
-    <form>
-        <label for="fileInput">Selecione o arquivo .xlsx:</label>
-        <input type="file" id="fileInput" accept=".xlsx" required>
-        <button type="button" onclick="processarArquivo()">Processar</button>
-    </form>
-    <div id="output">
-        <!-- Aqui será exibida a tabela de resultados -->
-    </div>
 
-    <script>
-        function processarArquivo() {
-            var fileInput = document.getElementById('fileInput');
-            var file = fileInput.files[0];
+<h1>Processar Produtos</h1>
 
-            if (!file) {
-                alert('Por favor, selecione um arquivo.');
-                return;
+<label for="processar">Clique para Processar:</label>
+<button id="processar">Processar</button>
+
+<table id="resultado">
+    <thead>
+        <tr>
+            <th>Família / Subfamília</th>
+            <th>Preço de Venda</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+document.getElementById("processar").addEventListener("click", function() {
+    // Fazendo a leitura dos arquivos CSV
+    fetch('tabpadrao.csv')
+        .then(response => response.text())
+        .then(tabpadraoData => {
+            fetch('bddic.csv')
+                .then(response => response.text())
+                .then(bddicData => {
+                    processarResultado(tabpadraoData, bddicData);
+                });
+        });
+});
+
+function processarResultado(tabpadraoData, bddicData) {
+    const tableBody = document.querySelector('#resultado tbody');
+    tableBody.innerHTML = ''; // Limpar tabela anterior, se houver
+
+    const tabpadraoLinhas = tabpadraoData.split('\n').slice(1);
+    const bddicLinhas = bddicData.split('\n').slice(1);
+
+    const familiasSubfamilias = {};
+    const produtosNaoEncontrados = [];
+
+    tabpadraoLinhas.forEach(tabpadraoLinha => {
+        const tabpadraoCols = tabpadraoLinha.split(';');
+        const nomeProdutoTabpadrao = tabpadraoCols[2];
+        const precoVenda = tabpadraoCols[3];
+
+        const produtoBddic = bddicLinhas.find(bddicLinha => {
+            const bddicCols = bddicLinha.split(';');
+            const nomeProdutoBddic = bddicCols[4];
+            return nomeProdutoBddic === nomeProdutoTabpadrao;
+        });
+
+        if (produtoBddic) {
+            const bddicCols = produtoBddic.split(';');
+            const familia = bddicCols[0];
+            const subfamilia = bddicCols[1];
+            const combinacao = `${familia} - ${subfamilia}`;
+            const resultado = `<tr><td>${combinacao}</td><td>${precoVenda}</td></tr>`;
+            if (!familiasSubfamilias[combinacao]) {
+                tableBody.innerHTML += resultado;
+                familiasSubfamilias[combinacao] = true;
             }
-
-            var reader = new FileReader();
-
-            reader.onload = function(e) {
-                var data = new Uint8Array(e.target.result);
-                var workbook = XLSX.read(data, { type: 'array' });
-                var sheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[sheetName];
-                
-                var tableData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-                var outputDiv = document.getElementById('output');
-                outputDiv.innerHTML = '<h2>Resultados:</h2>';
-
-                // Cria a tabela de resultados
-                var table = '<table>';
-                table += '<tr><th>Produto</th><th>Preço de Venda</th></tr>';
-
-                for (var i = 0; i < tableData.length; i++) {
-                    var row = tableData[i];
-                    if (row.length >= 4) { // Verifica se a linha tem dados suficientes (pelo menos 4 colunas)
-                        var productName = row[2];
-                        var productPrice = parseFloat(row[3]).toFixed(2); // Converte para número e formata para duas casas decimais
-
-                        if (productName && productPrice) {
-                            table += '<tr><td>' + productName + '</td><td>' + productPrice + '</td></tr>';
-                        }
-                    }
-                }
-
-                table += '</table>';
-                outputDiv.innerHTML += table;
-            };
-
-            reader.readAsArrayBuffer(file);
+        } else {
+            produtosNaoEncontrados.push({ nome: nomeProdutoTabpadrao, preco: precoVenda });
         }
-    </script>
+    });
+
+    if (produtosNaoEncontrados.length > 0) {
+        const mensagem = produtosNaoEncontrados.map(produto => `<tr><td colspan="2">${produto.nome} - Preço de Venda: ${produto.preco}</td></tr>`).join("");
+        tableBody.innerHTML += mensagem;
+    }
+}
+</script>
+
 </body>
 </html>
-
