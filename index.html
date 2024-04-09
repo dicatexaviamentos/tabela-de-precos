@@ -1,81 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Leitura de arquivo de texto</title>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 50px;
-    }
-    h2 {
-        margin-bottom: 20px;
-    }
-    #output {
-        margin-top: 20px;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabela de Preço</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
+    <h1>Tabela de Preço</h1>
+    <form>
+        <label for="fileInput">Selecione o arquivo .xlsx:</label>
+        <input type="file" id="fileInput" accept=".xlsx" required>
+        <button type="button" onclick="processarArquivo()">Processar</button>
+    </form>
+    <div id="output">
+        <!-- Aqui será exibida a tabela de resultados -->
+    </div>
 
-<h2>Upload de arquivo .txt</h2>
+    <script>
+        function processarArquivo() {
+            var fileInput = document.getElementById('fileInput');
+            var file = fileInput.files[0];
 
-<form id="uploadForm">
-    <input type="file" id="fileInput" accept=".txt" required>
-    <button type="submit">Upload</button>
-</form>
-
-<div id="output">
-    <!-- Resultado da leitura do arquivo será mostrado aqui -->
-</div>
-
-<script>
-    document.getElementById('uploadForm').addEventListener('submit', function(e) {
-        e.preventDefault(); // Evita que o formulário seja submetido
-
-        var file = document.getElementById('fileInput').files[0];
-        var reader = new FileReader();
-
-        reader.onload = function(e) {
-            var contents = e.target.result;
-            var lines = contents.split('\n');
-            var startReading = false;
-            var batchSize = 100; // Tamanho do lote de linhas para processar de uma vez
-            var currentIndex = 0;
-
-            var output = document.getElementById('output');
-            output.innerHTML = '<h2>Produtos e Preços:</h2>';
-
-            function processBatch() {
-                for (var i = 0; i < batchSize && currentIndex < lines.length; i++) {
-                    var line = lines[currentIndex];
-                    if (startReading) {
-                        var parts = line.split('\t');
-                        if (parts.length >= 4) {
-                            var productName = parts[2];
-                            var productPrice = parts[3];
-                            output.innerHTML += '<p><strong>Nome do Produto:</strong> ' + productName.trim() + ', <strong>Preço de Venda:</strong> ' + productPrice.trim() + '</p>';
-                        }
-                    } else {
-                        if (line.trim() === 'ABAS') {
-                            startReading = true;
-                        }
-                    }
-                    currentIndex++;
-                }
-
-                if (currentIndex < lines.length) {
-                    setTimeout(processBatch, 0); // Processa o próximo lote após um pequeno intervalo
-                }
+            if (!file) {
+                alert('Por favor, selecione um arquivo.');
+                return;
             }
 
-            processBatch();
-        };
+            var reader = new FileReader();
 
-        reader.readAsText(file);
-    });
-</script>
+            reader.onload = function(e) {
+                var data = new Uint8Array(e.target.result);
+                var workbook = XLSX.read(data, { type: 'array' });
+                var sheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[sheetName];
+                
+                var tableData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
+                var outputDiv = document.getElementById('output');
+                outputDiv.innerHTML = '<h2>Resultados:</h2>';
+
+                // Cria a tabela de resultados
+                var table = '<table>';
+                table += '<tr><th>Produto</th><th>Preço de Venda</th></tr>';
+
+                for (var i = 0; i < tableData.length; i++) {
+                    var row = tableData[i];
+                    if (row.length >= 4) { // Verifica se a linha tem dados suficientes (pelo menos 4 colunas)
+                        var productName = row[2];
+                        var productPrice = parseFloat(row[3]).toFixed(2); // Converte para número e formata para duas casas decimais
+
+                        if (productName && productPrice) {
+                            table += '<tr><td>' + productName + '</td><td>' + productPrice + '</td></tr>';
+                        }
+                    }
+                }
+
+                table += '</table>';
+                outputDiv.innerHTML += table;
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
 </body>
 </html>
+
