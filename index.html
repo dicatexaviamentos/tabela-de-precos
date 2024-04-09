@@ -31,7 +31,9 @@
 <table id="resultado">
     <thead>
         <tr>
-            <th>Família / Subfamília</th>
+            <th>Família</th>
+            <th>Subfamília</th>
+            <th>Produto</th>
             <th>Preço de Venda</th>
         </tr>
     </thead>
@@ -60,7 +62,6 @@ function processarResultado(tabpadraoData, bddicData) {
     const bddicLinhas = bddicData.split('\n').slice(1);
 
     const familiasSubfamilias = {};
-    const produtosNaoEncontrados = [];
 
     tabpadraoLinhas.forEach(tabpadraoLinha => {
         const tabpadraoCols = tabpadraoLinha.split(';');
@@ -75,24 +76,36 @@ function processarResultado(tabpadraoData, bddicData) {
 
         if (produtoBddic) {
             const bddicCols = produtoBddic.split(';');
+            const familiaSubfamilia = `${bddicCols[0]} - ${bddicCols[1]}`;
             const familia = bddicCols[0];
             const subfamilia = bddicCols[1];
-            const combinacao = `${familia} - ${subfamilia}`;
-            const resultado = `<tr><td>${combinacao}</td><td>${precoVenda}</td></tr>`;
-            if (!familiasSubfamilias[combinacao]) {
-                tableBody.innerHTML += resultado;
-                familiasSubfamilias[combinacao] = true;
+
+            let existingRow = tableBody.querySelector(`tr[data-subfamilia="${familia}-${subfamilia}"]`);
+            if (!existingRow) {
+                existingRow = document.createElement('tr');
+                existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
+                existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${nomeProdutoTabpadrao}</td><td>${precoVenda}</td>`;
+                tableBody.appendChild(existingRow);
+
+                familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda, nomeProdutoTabpadrao }];
+            } else {
+                const existingProducts = familiasSubfamilias[`${familia}-${subfamilia}`];
+                const hasPrice = existingProducts.some(product => product.precoVenda === precoVenda);
+                if (!hasPrice) {
+                    existingProducts.push({ precoVenda, nomeProdutoTabpadrao });
+                    const productNames = existingProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
+                    const priceCell = existingRow.querySelector('td:nth-child(3)');
+                    priceCell.innerHTML += `<br>${precoVenda}`;
+                    const productCell = existingRow.querySelector('td:nth-child(2)');
+                    productCell.innerHTML = productNames;
+                }
             }
-        } else {
-            produtosNaoEncontrados.push({ nome: nomeProdutoTabpadrao, preco: precoVenda });
         }
     });
-
-    if (produtosNaoEncontrados.length > 0) {
-        const mensagem = produtosNaoEncontrados.map(produto => `<tr><td colspan="2">${produto.nome} - Preço de Venda: ${produto.preco}</td></tr>`).join("");
-        tableBody.innerHTML += mensagem;
-    }
 }
+
+
+
 </script>
 
 </body>
