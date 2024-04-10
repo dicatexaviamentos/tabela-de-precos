@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -66,6 +66,11 @@
         background-color: #f2f2f2;
         font-weight: bold;
     }
+
+    /* Ocultar a primeira linha da tabela */
+    #resultado tr:first-child {
+        display: none;
+    }
 </style>
 </head>
 <body>
@@ -81,6 +86,7 @@
                 <th>Categoria</th>
                 <th>Produto</th>
                 <th>Padrão</th>
+                <th>Distribuidor</th> <!-- Nova coluna -->
             </tr>
         </thead>
         <tbody></tbody>
@@ -96,17 +102,23 @@ document.getElementById("processar").addEventListener("click", function() {
             fetch('bddic.csv')
                 .then(response => response.text())
                 .then(bddicData => {
-                    processarResultado(tabpadraoData, bddicData);
+                    fetch('tabdist.csv') // Obtendo o terceiro arquivo
+                        .then(response => response.text())
+                        .then(tabdistData => {
+                            processarResultado(tabpadraoData, bddicData, tabdistData); // Passando todos os dados para processar
+                        });
                 });
         });
 });
 
-function processarResultado(tabpadraoData, bddicData) {
+
+function processarResultado(tabpadraoData, bddicData, tabdistData) {
     const tableBody = document.querySelector('#resultado tbody');
     tableBody.innerHTML = ''; // Limpar tabela anterior, se houver
 
     const tabpadraoLinhas = tabpadraoData.split('\n').slice(1);
     const bddicLinhas = bddicData.split('\n').slice(1);
+    const tabdistLinhas = tabdistData.split('\n').slice(1); // Separando linhas do novo arquivo
 
     const ignorarPalavras = [
         "2ª", "SEGUNDA", "2º", "KIT", "*", 
@@ -121,7 +133,7 @@ function processarResultado(tabpadraoData, bddicData) {
         const tabpadraoCols = tabpadraoLinha.split(';');
         const nomeProdutoTabpadrao = tabpadraoCols[2];
         const descricaoProdutoTabpadrao = tabpadraoCols[2];
-        const precoVenda = "R$" + tabpadraoCols[3]; // Adicionando "R$" antes do valor
+        const precoVenda = parseFloat(tabpadraoCols[3].replace(',', '.')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço padrão
 
         // Verifica se a descrição do produto contém alguma palavra a ser ignorada
         if (!ignorarPalavras.some(palavra => descricaoProdutoTabpadrao.includes(palavra))) {
@@ -137,29 +149,43 @@ function processarResultado(tabpadraoData, bddicData) {
                 const familia = bddicCols[0];
                 const subfamilia = bddicCols[1];
 
-                let existingRow = tableBody.querySelector(`tr[data-subfamilia="${familia}-${subfamilia}"]`);
-                if (!existingRow) {
-                    existingRow = document.createElement('tr');
-                    existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
-                    existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${nomeProdutoTabpadrao}</td><td>${precoVenda}</td>`;
-                    tableBody.appendChild(existingRow);
+                // Obtendo o preço do distribuidor
+                const produtoTabdist = tabdistLinhas.find(tabdistLinha => {
+                    const tabdistCols = tabdistLinha.split(';');
+                    const nomeProdutoTabdist = tabdistCols[2];
+                    return nomeProdutoTabdist === nomeProdutoTabpadrao;
+                });
 
-                    familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda, nomeProdutoTabpadrao }];
-                } else {
-                    const existingProducts = familiasSubfamilias[`${familia}-${subfamilia}`];
-                    const hasPrice = existingProducts.some(product => product.precoVenda === precoVenda);
-                    if (!hasPrice) {
-                        existingProducts.push({ precoVenda, nomeProdutoTabpadrao });
-                        const productNames = existingProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
-                        const priceCell = existingRow.querySelector('td:nth-child(3)');
-                        priceCell.innerHTML += `<br>${precoVenda}`;
-                        const productCell = existingRow.querySelector('td:nth-child(2)');
-                        productCell.innerHTML = productNames;
+                if (produtoTabdist) {
+                    const tabdistCols = produtoTabdist.split(';');
+                    const precoDistribuidor = parseFloat(tabdistCols[3].replace(',', '.')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço de distribuidor
+
+                    let existingRow = tableBody.querySelector(`tr[data-subfamilia="${familia}-${subfamilia}"]`);
+                    if (!existingRow) {
+                        existingRow = document.createElement('tr');
+                        existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
+                        existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${nomeProdutoTabpadrao}</td><td>${precoVenda}</td><td>${precoDistribuidor}</td>`;
+                        tableBody.appendChild(existingRow);
+
+                        familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda, precoDistribuidor, nomeProdutoTabpadrao }];
+                    } else {
+                        const existingProducts = familiasSubfamilias[`${familia}-${subfamilia}`];
+                        const hasPrice = existingProducts.some(product => product.precoVenda === precoVenda);
+                        if (!hasPrice) {
+                            existingProducts.push({ precoVenda, precoDistribuidor, nomeProdutoTabpadrao });
+                            const productNames = existingProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
+                            const priceCell = existingRow.querySelector('td:nth-child(3)');
+                            priceCell.innerHTML += `<br>${precoVenda}`;
+                            const distributorPriceCell = existingRow.querySelector('td:nth-child(4)');
+                            distributorPriceCell.innerHTML += `<br>${precoDistribuidor}`;
+                            const productCell = existingRow.querySelector('td:nth-child(2)');
+                            productCell.innerHTML = productNames;
+                        }
                     }
-                }
 
-                // Exibir a tabela após o processamento dos resultados
-                document.querySelector('table').style.display = 'table';
+                    // Exibir a tabela após o processamento dos resultados
+                    document.querySelector('table').style.display = 'table';
+                }
             }
         }
     });
