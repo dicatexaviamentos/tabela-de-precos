@@ -18,6 +18,40 @@
         padding: 1cm;
         background-color: #ffffff;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        display: flex; /* Usando flexbox */
+        flex-direction: column; /* Direção de coluna para garantir que as famílias fiquem acima da tabela */
+        align-items: center; /* Centralizando os elementos horizontalmente */
+    }
+
+    #familias {
+        display: flex; /* Usando flexbox */
+        flex-wrap: wrap; /* Permitindo que os resultados quebrem para a próxima linha */
+        justify-content: center; /* Alinhando os resultados ao centro horizontalmente */
+        margin-bottom: 20px; /* Espaçamento inferior */
+    }
+
+    #familias input[type="checkbox"] {
+        display: none; /* Ocultando a caixa de seleção padrão */
+    }
+
+    #familias label {
+        display: block;
+        margin: 5px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        cursor: pointer;
+        background-color: #f2f2f2;
+        transition: background-color 0.3s;
+    }
+
+    #familias label:hover {
+        background-color: #e0e0e0;
+    }
+
+    #familias input[type="checkbox"]:checked + label {
+        background-color: #4CAF50;
+        color: white;
     }
 
     h1 {
@@ -67,131 +101,142 @@
         font-weight: bold;
     }
 </style>
+
+
+
+
 </head>
 <body>
 
-<div id="container">
-    <h1>Tabela de Preços Dicatex</h1>
-
-    <button id="processar">Processar</button>
-
-    <table id="resultado">
-        <thead>
-            <tr>
-                <th>Categoria</th>
-                <th>Produto</th>
-                <th>Padrão</th>
-                <th>Distribuidor</th> <!-- Nova coluna -->
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-</div>
+    <div id="container">
+        <h1>Tabela de Preços Dicatex</h1>
+    
+        <button id="processar">Processar</button>
+    
+        <div id="familias"></div> <!-- Adicionando um novo div para exibir as famílias/subfamílias -->
+    
+        <table id="resultado">
+            <thead>
+                <tr>
+                    <th>Categoria</th>
+                    <th>Produto</th>
+                    <th>Padrão</th>
+                    <th>Distribuidor</th> <!-- Nova coluna -->
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    
 
 <script>
-document.getElementById("processar").addEventListener("click", function() {
-    // Fazendo a leitura dos arquivos CSV
-    fetch('tabpadrao.csv')
-        .then(response => response.text())
-        .then(tabpadraoData => {
-            fetch('bddic.csv')
-                .then(response => response.text())
-                .then(bddicData => {
-                    fetch('tabdist.csv') // Obtendo o terceiro arquivo
-                        .then(response => response.text())
-                        .then(tabdistData => {
-                            processarResultado(tabpadraoData, bddicData, tabdistData); // Passando todos os dados para processar
-                        });
-                });
-        });
-});
-
-
-function processarResultado(tabpadraoData, bddicData, tabdistData) {
-    const tableBody = document.querySelector('#resultado tbody');
-    tableBody.innerHTML = ''; // Limpar tabela anterior, se houver
-
-    const tabpadraoLinhas = tabpadraoData.split('\n').slice(1);
-    const bddicLinhas = bddicData.split('\n').slice(1);
-    const tabdistLinhas = tabdistData.split('\n').slice(1); // Separando linhas do novo arquivo
-
-    const ignorarPalavras = [
-        "2ª", "SEGUNDA", "2º", "KIT", "*", 
-        "BONES", "CONE", "BORRACHA", "BEHA", "CARNEIRA", 
-        "CORANTE", "FLAVINA", "ESTAMPA", "100%", "INDUSTRIALIZACAO", 
-        "REBOBINAR", "COSTURA", "TRICHE", "ALVEJADO", "CORES"
-    ];
-
-    const familiasSubfamilias = {};
-
-    let firstRowProcessed = false; // Variável para controlar se a primeira linha foi processada
-
-    tabpadraoLinhas.forEach(tabpadraoLinha => {
-        const tabpadraoCols = tabpadraoLinha.split(';');
-        const nomeProdutoTabpadrao = tabpadraoCols[2];
-        const descricaoProdutoTabpadrao = tabpadraoCols[2];
-        const precoVenda = parseFloat(tabpadraoCols[3].replace(',', '.')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço padrão
-
-        // Verifica se a descrição do produto contém alguma palavra a ser ignorada
-        if (!ignorarPalavras.some(palavra => descricaoProdutoTabpadrao.includes(palavra))) {
-            const produtoBddic = bddicLinhas.find(bddicLinha => {
-                const bddicCols = bddicLinha.split(';');
-                const nomeProdutoBddic = bddicCols[4];
-                return nomeProdutoBddic === nomeProdutoTabpadrao;
+    document.getElementById("processar").addEventListener("click", function() {
+        // Fazendo a leitura dos arquivos CSV
+        fetch('tabpadrao.csv')
+            .then(response => response.text())
+            .then(tabpadraoData => {
+                fetch('bddic.csv')
+                    .then(response => response.text())
+                    .then(bddicData => {
+                        fetch('tabdist.csv') // Obtendo o terceiro arquivo
+                            .then(response => response.text())
+                            .then(tabdistData => {
+                                processarResultado(tabpadraoData, bddicData, tabdistData); // Passando todos os dados para processar
+                            });
+                    });
             });
+    });
 
-            if (produtoBddic) {
-                const bddicCols = produtoBddic.split(';');
-                const familiaSubfamilia = `${bddicCols[0]} - ${bddicCols[1]}`;
-                const familia = bddicCols[0];
-                const subfamilia = bddicCols[1];
+    function processarResultado(tabpadraoData, bddicData, tabdistData) {
+        const tableBody = document.querySelector('#resultado tbody');
+        tableBody.innerHTML = ''; // Limpar tabela anterior, se houver
 
-                // Obtendo o preço do distribuidor
-                const produtoTabdist = tabdistLinhas.find(tabdistLinha => {
-                    const tabdistCols = tabdistLinha.split(';');
-                    const nomeProdutoTabdist = tabdistCols[2];
-                    return nomeProdutoTabdist === nomeProdutoTabpadrao;
+        const tabpadraoLinhas = tabpadraoData.split('\n').slice(1);
+        const bddicLinhas = bddicData.split('\n').slice(1);
+        const tabdistLinhas = tabdistData.split('\n').slice(1); // Separando linhas do novo arquivo
+
+        const ignorarPalavras = [
+            "2ª", "SEGUNDA", "2º", "KIT", "*", 
+            "BONES", "CONE", "BORRACHA", "BEHA", "CARNEIRA", 
+            "CORANTE", "FLAVINA", "ESTAMPA", "100%", "INDUSTRIALIZACAO", 
+            "REBOBINAR", "COSTURA", "TRICHE", "ALVEJADO", "CORES"
+        ];
+
+        const familiasSubfamilias = {};
+
+        const familiasDiv = document.getElementById('familias');
+
+        tabpadraoLinhas.forEach(tabpadraoLinha => {
+            const tabpadraoCols = tabpadraoLinha.split(';');
+            const nomeProdutoTabpadrao = tabpadraoCols[2];
+            const descricaoProdutoTabpadrao = tabpadraoCols[2];
+            const precoVenda = parseFloat(tabpadraoCols[3].replace(',', '.')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço padrão
+
+            // Verifica se a descrição do produto contém alguma palavra a ser ignorada
+            if (!ignorarPalavras.some(palavra => descricaoProdutoTabpadrao.includes(palavra))) {
+                const produtoBddic = bddicLinhas.find(bddicLinha => {
+                    const bddicCols = bddicLinha.split(';');
+                    const nomeProdutoBddic = bddicCols[4];
+                    return nomeProdutoBddic === nomeProdutoTabpadrao;
                 });
 
-                if (produtoTabdist) {
-                    const tabdistCols = produtoTabdist.split(';');
-                    const precoDistribuidor = parseFloat(tabdistCols[3].replace(',', '.')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço de distribuidor
+                if (produtoBddic) {
+                    const bddicCols = produtoBddic.split(';');
+                    const familiaSubfamilia = `${bddicCols[0]} - ${bddicCols[1]}`;
+                    const familia = bddicCols[0];
+                    const subfamilia = bddicCols[1];
 
-                    let existingRow = tableBody.querySelector(`tr[data-subfamilia="${familia}-${subfamilia}"]`);
-                    if (!existingRow) {
-                        existingRow = document.createElement('tr');
-                        existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
-                        existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${nomeProdutoTabpadrao}</td><td>${precoVenda}</td><td>${precoDistribuidor}</td>`;
-                        tableBody.appendChild(existingRow);
+                    // Obtendo o preço do distribuidor
+                    const produtoTabdist = tabdistLinhas.find(tabdistLinha => {
+                        const tabdistCols = tabdistLinha.split(';');
+                        const nomeProdutoTabdist = tabdistCols[2];
+                        return nomeProdutoTabdist === nomeProdutoTabpadrao;
+                    });
 
-                        familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda, precoDistribuidor, nomeProdutoTabpadrao }];
-                    } else {
-                        const existingProducts = familiasSubfamilias[`${familia}-${subfamilia}`];
-                        const hasPrice = existingProducts.some(product => product.precoVenda === precoVenda);
-                        if (!hasPrice) {
-                            existingProducts.push({ precoVenda, precoDistribuidor, nomeProdutoTabpadrao });
-                            const productNames = existingProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
-                            const priceCell = existingRow.querySelector('td:nth-child(3)');
-                            priceCell.innerHTML += `<br>${precoVenda}`;
-                            const distributorPriceCell = existingRow.querySelector('td:nth-child(4)');
-                            distributorPriceCell.innerHTML += `<br>${precoDistribuidor}`;
-                            const productCell = existingRow.querySelector('td:nth-child(2)');
-                            productCell.innerHTML = productNames;
+                    if (produtoTabdist) {
+                        const tabdistCols = produtoTabdist.split(';');
+                        const precoDistribuidor = parseFloat(tabdistCols[3].replace(',', '.')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço de distribuidor
+
+                        let existingRow = tableBody.querySelector(`tr[data-subfamilia="${familia}-${subfamilia}"]`);
+                        if (!existingRow) {
+                            existingRow = document.createElement('tr');
+                            existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
+                            existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${nomeProdutoTabpadrao}</td><td>${precoVenda}</td><td>${precoDistribuidor}</td>`;
+                            tableBody.appendChild(existingRow);
+
+                            familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda, precoDistribuidor, nomeProdutoTabpadrao }];
+
+                            // Adicionando caixa de seleção para cada família/subfamília
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.value = `${familia}-${subfamilia}`;
+                            familiasDiv.appendChild(checkbox);
+                            const label = document.createElement('label');
+                            label.textContent = familiaSubfamilia;
+                            familiasDiv.appendChild(label);
+                        } else {
+                            const existingProducts = familiasSubfamilias[`${familia}-${subfamilia}`];
+                            const hasPrice = existingProducts.some(product => product.precoVenda === precoVenda);
+                            if (!hasPrice) {
+                                existingProducts.push({ precoVenda, precoDistribuidor, nomeProdutoTabpadrao });
+                                const productNames = existingProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
+                                const priceCell = existingRow.querySelector('td:nth-child(3)');
+                                priceCell.innerHTML += `<br>${precoVenda}`;
+                                const distributorPriceCell = existingRow.querySelector('td:nth-child(4)');
+                                distributorPriceCell.innerHTML += `<br>${precoDistribuidor}`;
+                                const productCell = existingRow.querySelector('td:nth-child(2)');
+                                productCell.innerHTML = productNames;
+                            }
                         }
-                    }
 
-                    // Exibir a tabela após o processamento dos resultados
-                    if (!firstRowProcessed) {
-                        existingRow.style.display = 'none'; // Oculta a primeira linha após processamento
-                        firstRowProcessed = true; // Marca a primeira linha como processada
-                    } else {
+                        // Exibir a tabela após o processamento dos resultados
                         document.querySelector('table').style.display = 'table';
                     }
                 }
             }
-        }
-    });
-}
+        });
+    }
+
 
 </script>
 
