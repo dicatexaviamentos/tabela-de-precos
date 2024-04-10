@@ -66,15 +66,6 @@
         background-color: #f2f2f2;
         font-weight: bold;
     }
-
-    .preco {
-        white-space: nowrap; /* Evita quebra de linha */
-    }
-
-    /* Oculta a primeira linha da tabela */
-    table#resultado tbody tr:first-child {
-        display: none;
-    }
 </style>
 </head>
 <body>
@@ -110,10 +101,6 @@ document.getElementById("processar").addEventListener("click", function() {
         });
 });
 
-function formatarPreco(preco) {
-    return "R$ " + parseFloat(preco).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$& ').replace('.', ',');
-}
-
 function processarResultado(tabpadraoData, bddicData) {
     const tableBody = document.querySelector('#resultado tbody');
     tableBody.innerHTML = ''; // Limpar tabela anterior, se houver
@@ -134,7 +121,7 @@ function processarResultado(tabpadraoData, bddicData) {
         const tabpadraoCols = tabpadraoLinha.split(';');
         const nomeProdutoTabpadrao = tabpadraoCols[2];
         const descricaoProdutoTabpadrao = tabpadraoCols[2];
-        const precoVenda = formatarPreco(tabpadraoCols[3]); // Adicionando "R$" e formatando o preço
+        const precoVenda = "R$" + tabpadraoCols[3]; // Adicionando "R$" antes do valor
 
         // Verifica se a descrição do produto contém alguma palavra a ser ignorada
         if (!ignorarPalavras.some(palavra => descricaoProdutoTabpadrao.includes(palavra))) {
@@ -154,7 +141,7 @@ function processarResultado(tabpadraoData, bddicData) {
                 if (!existingRow) {
                     existingRow = document.createElement('tr');
                     existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
-                    existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${nomeProdutoTabpadrao}</td><td class="preco">${precoVenda}</td>`; // Adicionando classe para formatação do preço
+                    existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${nomeProdutoTabpadrao}</td><td>${precoVenda}</td>`;
                     tableBody.appendChild(existingRow);
 
                     familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda, nomeProdutoTabpadrao }];
