@@ -5,39 +5,96 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dicatex Aviamentos</title>
 <style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9fa;
+    }
+
+    #container {
+        width: 21cm;
+        margin: 0 auto;
+        padding: 1cm;
+        background-color: #ffffff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+
+    #processar {
+        display: block;
+        margin-bottom: 20px;
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+    }
+
+    #processar:hover {
+        background-color: #45a049;
+    }
+
     table {
-        border-collapse: collapse;
         width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        display: none; /* Inicialmente ocultar a tabela */
     }
 
     th, td {
         border: 1px solid #dddddd;
-        text-align: left;
         padding: 8px;
+        font-size: 14px; /* Definindo o tamanho da fonte para as células */
     }
 
     th {
         background-color: #f2f2f2;
+        font-weight: bold;
+    }
+
+    .preco {
+        white-space: nowrap; /* Evita quebra de linha */
+    }
+
+    /* Oculta a primeira linha da tabela */
+    table#resultado tbody tr:first-child {
+        display: none;
     }
 </style>
 </head>
 <body>
 
-<h1>Tabela de Preços Dicatex</h1>
+<div id="container">
+    <h1>Tabela de Preços Dicatex</h1>
 
-<label for="processar">Clique para Processar:</label>
-<button id="processar">Processar</button>
+    <button id="processar">Processar</button>
 
-<table id="resultado">
-    <thead>
-        <tr>
-            <th>Família</th>
-            <th>Produto</th>
-            <th>Padrão</th>
-        </tr>
-    </thead>
-    <tbody></tbody>
-</table>
+    <table id="resultado">
+        <thead>
+            <tr>
+                <th>Categoria</th>
+                <th>Produto</th>
+                <th>Padrão</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
 
 <script>
 document.getElementById("processar").addEventListener("click", function() {
@@ -52,6 +109,10 @@ document.getElementById("processar").addEventListener("click", function() {
                 });
         });
 });
+
+function formatarPreco(preco) {
+    return "R$ " + parseFloat(preco).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$& ').replace('.', ',');
+}
 
 function processarResultado(tabpadraoData, bddicData) {
     const tableBody = document.querySelector('#resultado tbody');
@@ -73,7 +134,7 @@ function processarResultado(tabpadraoData, bddicData) {
         const tabpadraoCols = tabpadraoLinha.split(';');
         const nomeProdutoTabpadrao = tabpadraoCols[2];
         const descricaoProdutoTabpadrao = tabpadraoCols[2];
-        const precoVenda = tabpadraoCols[3];
+        const precoVenda = formatarPreco(tabpadraoCols[3]); // Adicionando "R$" e formatando o preço
 
         // Verifica se a descrição do produto contém alguma palavra a ser ignorada
         if (!ignorarPalavras.some(palavra => descricaoProdutoTabpadrao.includes(palavra))) {
@@ -93,7 +154,7 @@ function processarResultado(tabpadraoData, bddicData) {
                 if (!existingRow) {
                     existingRow = document.createElement('tr');
                     existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
-                    existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${nomeProdutoTabpadrao}</td><td>${precoVenda}</td>`;
+                    existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${nomeProdutoTabpadrao}</td><td class="preco">${precoVenda}</td>`; // Adicionando classe para formatação do preço
                     tableBody.appendChild(existingRow);
 
                     familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda, nomeProdutoTabpadrao }];
@@ -109,15 +170,13 @@ function processarResultado(tabpadraoData, bddicData) {
                         productCell.innerHTML = productNames;
                     }
                 }
+
+                // Exibir a tabela após o processamento dos resultados
+                document.querySelector('table').style.display = 'table';
             }
         }
     });
 }
-
-
-
-
-
 </script>
 
 </body>
