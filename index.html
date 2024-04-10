@@ -33,7 +33,7 @@
         <tr>
             <th>Família</th>
             <th>Produto</th>
-            <th>Tabela Padrão</th>
+            <th>Padrão</th>
         </tr>
     </thead>
     <tbody></tbody>
@@ -60,48 +60,61 @@ function processarResultado(tabpadraoData, bddicData) {
     const tabpadraoLinhas = tabpadraoData.split('\n').slice(1);
     const bddicLinhas = bddicData.split('\n').slice(1);
 
+    const ignorarPalavras = [
+        "2ª", "SEGUNDA", "2º", "KIT", "*", 
+        "BONES", "CONE", "BORRACHA", "BEHA", "CARNEIRA", 
+        "CORANTE", "FLAVINA", "ESTAMPA", "100%", "INDUSTRIALIZACAO", 
+        "REBOBINAR", "COSTURA", "TRICHE", "ALVEJADO", "CORES"
+    ];
+
     const familiasSubfamilias = {};
 
     tabpadraoLinhas.forEach(tabpadraoLinha => {
         const tabpadraoCols = tabpadraoLinha.split(';');
         const nomeProdutoTabpadrao = tabpadraoCols[2];
+        const descricaoProdutoTabpadrao = tabpadraoCols[2];
         const precoVenda = tabpadraoCols[3];
 
-        const produtoBddic = bddicLinhas.find(bddicLinha => {
-            const bddicCols = bddicLinha.split(';');
-            const nomeProdutoBddic = bddicCols[4];
-            return nomeProdutoBddic === nomeProdutoTabpadrao;
-        });
+        // Verifica se a descrição do produto contém alguma palavra a ser ignorada
+        if (!ignorarPalavras.some(palavra => descricaoProdutoTabpadrao.includes(palavra))) {
+            const produtoBddic = bddicLinhas.find(bddicLinha => {
+                const bddicCols = bddicLinha.split(';');
+                const nomeProdutoBddic = bddicCols[4];
+                return nomeProdutoBddic === nomeProdutoTabpadrao;
+            });
 
-        if (produtoBddic) {
-            const bddicCols = produtoBddic.split(';');
-            const familiaSubfamilia = `${bddicCols[0]} - ${bddicCols[1]}`;
-            const familia = bddicCols[0];
-            const subfamilia = bddicCols[1];
+            if (produtoBddic) {
+                const bddicCols = produtoBddic.split(';');
+                const familiaSubfamilia = `${bddicCols[0]} - ${bddicCols[1]}`;
+                const familia = bddicCols[0];
+                const subfamilia = bddicCols[1];
 
-            let existingRow = tableBody.querySelector(`tr[data-subfamilia="${familia}-${subfamilia}"]`);
-            if (!existingRow) {
-                existingRow = document.createElement('tr');
-                existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
-                existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${nomeProdutoTabpadrao}</td><td>${precoVenda}</td>`;
-                tableBody.appendChild(existingRow);
+                let existingRow = tableBody.querySelector(`tr[data-subfamilia="${familia}-${subfamilia}"]`);
+                if (!existingRow) {
+                    existingRow = document.createElement('tr');
+                    existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
+                    existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${nomeProdutoTabpadrao}</td><td>${precoVenda}</td>`;
+                    tableBody.appendChild(existingRow);
 
-                familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda, nomeProdutoTabpadrao }];
-            } else {
-                const existingProducts = familiasSubfamilias[`${familia}-${subfamilia}`];
-                const hasPrice = existingProducts.some(product => product.precoVenda === precoVenda);
-                if (!hasPrice) {
-                    existingProducts.push({ precoVenda, nomeProdutoTabpadrao });
-                    const productNames = existingProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
-                    const priceCell = existingRow.querySelector('td:nth-child(3)');
-                    priceCell.innerHTML += `<br>${precoVenda}`;
-                    const productCell = existingRow.querySelector('td:nth-child(2)');
-                    productCell.innerHTML = productNames;
+                    familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda, nomeProdutoTabpadrao }];
+                } else {
+                    const existingProducts = familiasSubfamilias[`${familia}-${subfamilia}`];
+                    const hasPrice = existingProducts.some(product => product.precoVenda === precoVenda);
+                    if (!hasPrice) {
+                        existingProducts.push({ precoVenda, nomeProdutoTabpadrao });
+                        const productNames = existingProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
+                        const priceCell = existingRow.querySelector('td:nth-child(3)');
+                        priceCell.innerHTML += `<br>${precoVenda}`;
+                        const productCell = existingRow.querySelector('td:nth-child(2)');
+                        productCell.innerHTML = productNames;
+                    }
                 }
             }
         }
     });
 }
+
+
 
 
 
