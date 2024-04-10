@@ -145,7 +145,6 @@ document.getElementById("processar").addEventListener("click", function() {
         });
 });
 
-
 function processarResultado(tabpadraoData, bddicData, tabdistData) {
     const tableBody = document.querySelector('#resultado tbody');
     tableBody.innerHTML = ''; // Limpar tabela anterior, se houver
@@ -230,24 +229,9 @@ function processarResultado(tabpadraoData, bddicData, tabdistData) {
 
                             const familiaSubfamiliaDiv = document.getElementById('familias');
 
-                            // Verifica se o checkbox "Marcar todos" já foi adicionado
-                            if (!document.getElementById('marcarTodos')) {
-                                // Adiciona o checkbox "Marcar todos" apenas se ainda não estiver presente
-                                familiaSubfamiliaDiv.innerHTML = `<label><input type="checkbox" id="marcarTodos"> MARCAR TODOS</label>` + familiaSubfamiliaDiv.innerHTML;
-                            }
-
                             if (!familiaSubfamiliaDiv.innerHTML.includes(familiaSubfamilia)) {
-                                familiaSubfamiliaDiv.innerHTML += `<label><input type="checkbox" name="familiaSubfamilia" value="${familiaSubfamilia}"><span>${familiaSubfamilia}</span></label>`;
+                                familiaSubfamiliaDiv.innerHTML += `<label><input type="checkbox" name="familiaSubfamilia" value="${familiaSubfamilia}" checked><span>${familiaSubfamilia}</span></label>`;
                             }
-
-                            // Adicione este código após a adição do checkbox "Marcar todos"
-                            const marcarTodosCheckbox = document.getElementById('marcarTodos');
-                            marcarTodosCheckbox.addEventListener('change', function () {
-                                const checkboxes = document.querySelectorAll('input[name="familiaSubfamilia"]');
-                                checkboxes.forEach(checkbox => {
-                                    checkbox.checked = this.checked;
-                                });
-                            });
                         }
                     }
                 }
@@ -255,6 +239,16 @@ function processarResultado(tabpadraoData, bddicData, tabdistData) {
         }
     });
 }
+
+// Remover o evento de mudança do checkbox "Marcar todos"
+const marcarTodosCheckbox = document.getElementById('marcarTodos');
+marcarTodosCheckbox.addEventListener('change', function () {
+    const checkboxes = document.querySelectorAll('input[name="familiaSubfamilia"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+});
+
 
 // Função para lidar com a seleção/desmarcação dos checkboxes
 function handleCheckboxChange() {
