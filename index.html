@@ -124,6 +124,8 @@ function processarResultado(tabpadraoData, bddicData, tabdistData) {
 
     const familiasSubfamilias = {};
 
+    let firstRowProcessed = false; // Variável para controlar se a primeira linha foi processada
+
     tabpadraoLinhas.forEach(tabpadraoLinha => {
         const tabpadraoCols = tabpadraoLinha.split(';');
         const nomeProdutoTabpadrao = tabpadraoCols[2];
@@ -179,12 +181,18 @@ function processarResultado(tabpadraoData, bddicData, tabdistData) {
                     }
 
                     // Exibir a tabela após o processamento dos resultados
-                    document.querySelector('table').style.display = 'table';
+                    if (!firstRowProcessed) {
+                        existingRow.style.display = 'none'; // Oculta a primeira linha após processamento
+                        firstRowProcessed = true; // Marca a primeira linha como processada
+                    } else {
+                        document.querySelector('table').style.display = 'table';
+                    }
                 }
             }
         }
     });
 }
+
 </script>
 
 </body>
