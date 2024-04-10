@@ -10,6 +10,9 @@
         margin: 0;
         padding: 0;
         background-color: #f8f9fa;
+        display: flex; /* Ativa flexbox */
+        flex-direction: column; /* Coloca os itens em uma coluna */
+        align-items: flex-start; /* Alinha os itens à esquerda */
     }
 
     #container {
@@ -18,33 +21,6 @@
         padding: 1cm;
         background-color: #ffffff;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        display: flex; /* Usando flexbox */
-        flex-direction: column; /* Direção de coluna para garantir que as famílias fiquem acima da tabela */
-        align-items: center; /* Centralizando os elementos horizontalmente */
-    }
-
-    #familias {
-        display: flex; /* Usando flexbox */
-        flex-wrap: wrap; /* Permitindo que os resultados quebrem para a próxima linha */
-        justify-content: center; /* Alinhando os resultados ao centro horizontalmente */
-        margin-bottom: 20px; /* Espaçamento inferior */
-    }
-
-    #familias p {
-        margin: 0; /* Removendo margens padrão dos parágrafos */
-        padding: 1px 4px; /* Espaçamento interno */
-        border: 1px solid #ccc; /* Adicionando uma borda para separar os resultados */
-        border-radius: 5px; /* Borda arredondada */
-        background-color: #f2f2f2; /* Cor de fundo */
-        white-space: nowrap; /* Impedindo que os resultados quebrem para a próxima linha */
-        margin-right: 10px; /* Espaçamento entre os resultados */
-        margin-bottom: 10px; /* Espaçamento inferior */
-        cursor: pointer; /* Cursor de ponteiro para indicar que é clicável */
-    }
-
-    .selected {
-        background-color: #4CAF50; /* Cor de fundo quando selecionado */
-        color: white; /* Cor do texto quando selecionado */
     }
 
     h1 {
@@ -93,6 +69,39 @@
         background-color: #f2f2f2;
         font-weight: bold;
     }
+
+    /* Estil/* Estilo para o contêiner pai dos checkboxes */
+/* Estilo para o contêiner pai dos checkboxes */
+ /* Estilo para o contêiner pai dos checkboxes */
+#familias {
+    display: flex; /* Ativa flexbox */
+    flex-wrap: wrap; /* Permite que os itens quebrem para a próxima linha */
+    align-items: flex-start; /* Alinha os itens verticalmente no topo */
+    justify-content: space-between; /* Distribui os itens igualmente nas colunas */
+    width: 100%; /* Largura de 90% para evitar que os itens se espalhem por toda a largura da página */
+    font-size: 14px;
+}
+
+/* Estilo para cada rótulo e checkbox */
+#familias label {
+    margin-bottom: 10px; /* Adiciona espaço entre os checkboxes */
+    width: calc(30% - 10px); /* Calcula a largura para cada coluna, considerando a margem entre as colunas */
+    display: flex; /* Ativa flexbox */
+    align-items: center; /* Alinha os itens verticalmente */
+}
+
+#familias label input[type="checkbox"] {
+    margin-right: 5px; /* Adiciona espaço entre o checkbox e o texto */
+}
+
+/* Estilo para destacar o texto */
+#familias label span {
+    font-weight: bold; /* Torna o texto em negrito */
+    color: #333; /* Define a cor do texto */
+}
+
+
+
 </style>
 </head>
 <body>
@@ -136,6 +145,7 @@ document.getElementById("processar").addEventListener("click", function() {
         });
 });
 
+
 function processarResultado(tabpadraoData, bddicData, tabdistData) {
     const tableBody = document.querySelector('#resultado tbody');
     tableBody.innerHTML = ''; // Limpar tabela anterior, se houver
@@ -157,81 +167,116 @@ function processarResultado(tabpadraoData, bddicData, tabdistData) {
         const tabpadraoCols = tabpadraoLinha.split(';');
         const nomeProdutoTabpadrao = tabpadraoCols[2];
         const descricaoProdutoTabpadrao = tabpadraoCols[2];
-        const precoVenda = parseFloat(tabpadraoCols[3].replace(',', '.')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço padrão
+        const precoVenda = parseFloat(tabpadraoCols[3].replace(',', '.'));
 
-        // Verifica se a descrição do produto contém alguma palavra a ser ignorada
-        if (!ignorarPalavras.some(palavra => descricaoProdutoTabpadrao.includes(palavra))) {
-            const produtoBddic = bddicLinhas.find(bddicLinha => {
-                const bddicCols = bddicLinha.split(';');
-                const nomeProdutoBddic = bddicCols[4];
-                return nomeProdutoBddic === nomeProdutoTabpadrao;
-            });
+        // Verifica se o preço de venda é um número válido
+        if (!isNaN(precoVenda)) {
+            const precoVendaFormatado = precoVenda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço padrão
 
-            if (produtoBddic) {
-                const bddicCols = produtoBddic.split(';');
-                const familiaSubfamilia = `${bddicCols[0]} - ${bddicCols[1]}`;
-                const familia = bddicCols[0];
-                const subfamilia = bddicCols[1];
-
-                // Obtendo o preço do distribuidor
-                const produtoTabdist = tabdistLinhas.find(tabdistLinha => {
-                    const tabdistCols = tabdistLinha.split(';');
-                    const nomeProdutoTabdist = tabdistCols[2];
-                    return nomeProdutoTabdist === nomeProdutoTabpadrao;
+            // Verifica se a descrição do produto contém alguma palavra a ser ignorada
+            if (!ignorarPalavras.some(palavra => descricaoProdutoTabpadrao.includes(palavra))) {
+                const produtoBddic = bddicLinhas.find(bddicLinha => {
+                    const bddicCols = bddicLinha.split(';');
+                    const nomeProdutoBddic = bddicCols[4];
+                    return nomeProdutoBddic === nomeProdutoTabpadrao;
                 });
 
-                if (produtoTabdist) {
-                    const tabdistCols = produtoTabdist.split(';');
-                    const precoDistribuidor = parseFloat(tabdistCols[3].replace(',', '.')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço de distribuidor
+                if (produtoBddic) {
+                    const bddicCols = produtoBddic.split(';');
+                    const familiaSubfamilia = `${bddicCols[0]} - ${bddicCols[1]}`;
+                    const familia = bddicCols[0];
+                    const subfamilia = bddicCols[1];
 
-                    let existingRow = tableBody.querySelector(`tr[data-subfamilia="${familia}-${subfamilia}"]`);
-                    if (!existingRow) {
-                        existingRow = document.createElement('tr');
-                        existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
-                        existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${nomeProdutoTabpadrao}</td><td>${precoVenda}</td><td>${precoDistribuidor}</td>`;
-                        tableBody.appendChild(existingRow);
+                    // Obtendo o preço do distribuidor
+                    const produtoTabdist = tabdistLinhas.find(tabdistLinha => {
+                        const tabdistCols = tabdistLinha.split(';');
+                        const nomeProdutoTabdist = tabdistCols[2];
+                        return nomeProdutoTabdist === nomeProdutoTabpadrao;
+                    });
 
-                        familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda, precoDistribuidor, nomeProdutoTabpadrao }];
-                    } else {
-                        const existingProducts = familiasSubfamilias[`${familia}-${subfamilia}`];
-                        const hasPrice = existingProducts.some(product => product.precoVenda === precoVenda);
-                        if (!hasPrice) {
-                            existingProducts.push({ precoVenda, precoDistribuidor, nomeProdutoTabpadrao });
-                            const productNames = existingProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
-                            const priceCell = existingRow.querySelector('td:nth-child(3)');
-                            priceCell.innerHTML += `<br>${precoVenda}`;
-                            const distributorPriceCell = existingRow.querySelector('td:nth-child(4)');
-                            distributorPriceCell.innerHTML += `<br>${precoDistribuidor}`;
-                            const productCell = existingRow.querySelector('td:nth-child(2)');
-                            productCell.innerHTML = productNames;
+                    if (produtoTabdist) {
+                        const tabdistCols = produtoTabdist.split(';');
+                        const precoDistribuidor = parseFloat(tabdistCols[3].replace(',', '.'));
+
+                        // Verifica se o preço do distribuidor é um número válido
+                        if (!isNaN(precoDistribuidor)) {
+                            const precoDistribuidorFormatado = precoDistribuidor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço de distribuidor
+
+                            let existingRow = tableBody.querySelector(`tr[data-subfamilia="${familia}-${subfamilia}"]`);
+                            if (!existingRow) {
+                                existingRow = document.createElement('tr');
+                                existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
+                                existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${nomeProdutoTabpadrao}</td><td>${precoVendaFormatado}</td><td>${precoDistribuidorFormatado}</td>`;
+                                tableBody.appendChild(existingRow);
+
+                                familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda: precoVendaFormatado, precoDistribuidor: precoDistribuidorFormatado, nomeProdutoTabpadrao }];
+                            } else {
+                                const existingProducts = familiasSubfamilias[`${familia}-${subfamilia}`];
+                                const hasPrice = existingProducts.some(product => product.precoVenda === precoVendaFormatado);
+                                if (!hasPrice) {
+                                    existingProducts.push({ precoVenda: precoVendaFormatado, precoDistribuidor: precoDistribuidorFormatado, nomeProdutoTabpadrao });
+                                    const productNames = existingProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
+                                    const priceCell = existingRow.querySelector('td:nth-child(3)');
+                                    priceCell.innerHTML += `<br>${precoVendaFormatado}`;
+                                    const distributorPriceCell = existingRow.querySelector('td:nth-child(4)');
+                                    distributorPriceCell.innerHTML += `<br>${precoDistribuidorFormatado}`;
+                                    const productCell = existingRow.querySelector('td:nth-child(2)');
+                                    productCell.innerHTML = productNames;
+                                }
+                            }
+
+                            // Exibir a tabela após o processamento dos resultados
+                            document.querySelector('table').style.display = 'table';
+
+                            const familiaSubfamiliaDiv = document.getElementById('familias');
+
+                            // Verifica se o checkbox "Marcar todos" já foi adicionado
+                            if (!document.getElementById('marcarTodos')) {
+                                // Adiciona o checkbox "Marcar todos" apenas se ainda não estiver presente
+                                familiaSubfamiliaDiv.innerHTML = `<label><input type="checkbox" id="marcarTodos"> MARCAR TODOS</label>` + familiaSubfamiliaDiv.innerHTML;
+                            }
+
+                            if (!familiaSubfamiliaDiv.innerHTML.includes(familiaSubfamilia)) {
+                                familiaSubfamiliaDiv.innerHTML += `<label><input type="checkbox" name="familiaSubfamilia" value="${familiaSubfamilia}"><span>${familiaSubfamilia}</span></label>`;
+                            }
+
+                            // Adicione este código após a adição do checkbox "Marcar todos"
+                            const marcarTodosCheckbox = document.getElementById('marcarTodos');
+                            marcarTodosCheckbox.addEventListener('change', function () {
+                                const checkboxes = document.querySelectorAll('input[name="familiaSubfamilia"]');
+                                checkboxes.forEach(checkbox => {
+                                    checkbox.checked = this.checked;
+                                });
+                            });
                         }
-                    }
-
-                    // Exibir a tabela após o processamento dos resultados
-                    document.querySelector('table').style.display = 'table';
-
-                    // Exibir as famílias/subfamílias acima da tabela
-                    const familiaSubfamiliaDiv = document.getElementById('familias');
-                    if (!familiaSubfamiliaDiv.innerHTML.includes(familiaSubfamilia)) {
-                        familiaSubfamiliaDiv.innerHTML += `<p data-subfamilia="${familia}-${subfamilia}">${familiaSubfamilia}</p>`;
                     }
                 }
             }
         }
     });
+}
 
-    // Adicionando eventos de clique aos elementos de família/subfamília
-    document.querySelectorAll('#familias p').forEach(item => {
-        item.addEventListener('click', event => {
-            const selected = item.classList.toggle('selected'); // Alternar classe 'selected' ao clicar
-            const subfamilia = item.getAttribute('data-subfamilia');
-            const rows = document.querySelectorAll(`#resultado tbody tr[data-subfamilia="${subfamilia}"]`);
-            rows.forEach(row => {
-                row.style.display = selected ? 'table-row' : 'none'; // Exibir ou ocultar linha conforme selecionado
+// Função para lidar com a seleção/desmarcação dos checkboxes
+function handleCheckboxChange() {
+    const checkboxes = document.querySelectorAll('input[name="familiaSubfamilia"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const selectedValue = this.value;
+            const tableRows = document.querySelectorAll('#resultado tbody tr');
+            tableRows.forEach(row => {
+                if (row.getAttribute('data-subfamilia') === selectedValue) {
+                    row.style.display = this.checked ? 'table-row' : 'none';
+                }
             });
         });
     });
 }
+
+// Chamar a função para lidar com a seleção/desmarcação dos checkboxes
+handleCheckboxChange();
+
+
 </script>
+
 </body>
 </html>
