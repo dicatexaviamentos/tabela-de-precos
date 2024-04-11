@@ -10,9 +10,6 @@
         margin: 0;
         padding: 0;
         background-color: #f8f9fa;
-        display: flex; /* Ativa flexbox */
-        flex-direction: column; /* Coloca os itens em uma coluna */
-        align-items: flex-start; /* Alinha os itens à esquerda */
     }
 
     #container {
@@ -69,63 +66,27 @@
         background-color: #f2f2f2;
         font-weight: bold;
     }
-
-    /* Estil/* Estilo para o contêiner pai dos checkboxes */
-/* Estilo para o contêiner pai dos checkboxes */
- /* Estilo para o contêiner pai dos checkboxes */
-#familias {
-    display: flex; /* Ativa flexbox */
-    flex-wrap: wrap; /* Permite que os itens quebrem para a próxima linha */
-    align-items: flex-start; /* Alinha os itens verticalmente no topo */
-    justify-content: space-between; /* Distribui os itens igualmente nas colunas */
-    width: 100%; /* Largura de 90% para evitar que os itens se espalhem por toda a largura da página */
-    font-size: 14px;
-}
-
-/* Estilo para cada rótulo e checkbox */
-#familias label {
-    margin-bottom: 10px; /* Adiciona espaço entre os checkboxes */
-    width: calc(30% - 10px); /* Calcula a largura para cada coluna, considerando a margem entre as colunas */
-    display: flex; /* Ativa flexbox */
-    align-items: center; /* Alinha os itens verticalmente */
-}
-
-#familias label input[type="checkbox"] {
-    margin-right: 5px; /* Adiciona espaço entre o checkbox e o texto */
-}
-
-/* Estilo para destacar o texto */
-#familias label span {
-    font-weight: bold; /* Torna o texto em negrito */
-    color: #333; /* Define a cor do texto */
-}
-
-
-
 </style>
 </head>
 <body>
 
-    <div id="container">
-        <h1>Tabela de Preços Dicatex</h1>
-    
-        <button id="processar">Processar</button>
-    
-        <div id="familias"></div> <!-- Adicionando um novo div para exibir as famílias/subfamílias -->
-    
-        <table id="resultado">
-            <thead>
-                <tr>
-                    <th>Categoria</th>
-                    <th>Produto</th>
-                    <th>Padrão</th>
-                    <th>Distribuidor</th> <!-- Nova coluna -->
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-    
+<div id="container">
+    <h1>Tabela de Preços Dicatex</h1>
+
+    <button id="processar">Processar</button>
+
+    <table id="resultado">
+        <thead>
+            <tr>
+                <th>Categoria</th>
+                <th>Produto</th>
+                <th>Padrão</th>
+                <th>Distribuidor</th> <!-- Nova coluna -->
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
 
 <script>
 document.getElementById("processar").addEventListener("click", function() {
@@ -144,6 +105,7 @@ document.getElementById("processar").addEventListener("click", function() {
                 });
         });
 });
+
 
 function processarResultado(tabpadraoData, bddicData, tabdistData) {
     const tableBody = document.querySelector('#resultado tbody');
@@ -170,7 +132,7 @@ function processarResultado(tabpadraoData, bddicData, tabdistData) {
 
         // Verifica se o preço de venda é um número válido
         if (!isNaN(precoVenda)) {
-            const precoVendaFormatado = precoVenda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço padrão
+            const precoVendaFormatted = precoVenda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço padrão
 
             // Verifica se a descrição do produto contém alguma palavra a ser ignorada
             if (!ignorarPalavras.some(palavra => descricaoProdutoTabpadrao.includes(palavra))) {
@@ -195,30 +157,30 @@ function processarResultado(tabpadraoData, bddicData, tabdistData) {
 
                     if (produtoTabdist) {
                         const tabdistCols = produtoTabdist.split(';');
-                        const precoDistribuidor = parseFloat(tabdistCols[3].replace(',', '.'));
+                        const precoDistribuidor = parseFloat(tabdistCols[3].replace(',', '.')); // Formatando preço de distribuidor
 
-                        // Verifica se o preço do distribuidor é um número válido
+                        // Verifica se o preço de distribuidor é um número válido
                         if (!isNaN(precoDistribuidor)) {
-                            const precoDistribuidorFormatado = precoDistribuidor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço de distribuidor
+                            const precoDistribuidorFormatted = precoDistribuidor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço de distribuidor
 
                             let existingRow = tableBody.querySelector(`tr[data-subfamilia="${familia}-${subfamilia}"]`);
                             if (!existingRow) {
                                 existingRow = document.createElement('tr');
                                 existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
-                                existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${nomeProdutoTabpadrao}</td><td>${precoVendaFormatado}</td><td>${precoDistribuidorFormatado}</td>`;
+                                existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${nomeProdutoTabpadrao}</td><td>${precoVendaFormatted}</td><td>${precoDistribuidorFormatted}</td>`;
                                 tableBody.appendChild(existingRow);
 
-                                familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda: precoVendaFormatado, precoDistribuidor: precoDistribuidorFormatado, nomeProdutoTabpadrao }];
+                                familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda: precoVendaFormatted, precoDistribuidor: precoDistribuidorFormatted, nomeProdutoTabpadrao }];
                             } else {
                                 const existingProducts = familiasSubfamilias[`${familia}-${subfamilia}`];
-                                const hasPrice = existingProducts.some(product => product.precoVenda === precoVendaFormatado);
+                                const hasPrice = existingProducts.some(product => product.precoVenda === precoVendaFormatted);
                                 if (!hasPrice) {
-                                    existingProducts.push({ precoVenda: precoVendaFormatado, precoDistribuidor: precoDistribuidorFormatado, nomeProdutoTabpadrao });
+                                    existingProducts.push({ precoVenda: precoVendaFormatted, precoDistribuidor: precoDistribuidorFormatted, nomeProdutoTabpadrao });
                                     const productNames = existingProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
                                     const priceCell = existingRow.querySelector('td:nth-child(3)');
-                                    priceCell.innerHTML += `<br>${precoVendaFormatado}`;
+                                    priceCell.innerHTML += `<br>${precoVendaFormatted}`;
                                     const distributorPriceCell = existingRow.querySelector('td:nth-child(4)');
-                                    distributorPriceCell.innerHTML += `<br>${precoDistribuidorFormatado}`;
+                                    distributorPriceCell.innerHTML += `<br>${precoDistribuidorFormatted}`;
                                     const productCell = existingRow.querySelector('td:nth-child(2)');
                                     productCell.innerHTML = productNames;
                                 }
@@ -226,12 +188,6 @@ function processarResultado(tabpadraoData, bddicData, tabdistData) {
 
                             // Exibir a tabela após o processamento dos resultados
                             document.querySelector('table').style.display = 'table';
-
-                            const familiaSubfamiliaDiv = document.getElementById('familias');
-
-                            if (!familiaSubfamiliaDiv.innerHTML.includes(familiaSubfamilia)) {
-                                familiaSubfamiliaDiv.innerHTML += `<label><input type="checkbox" name="familiaSubfamilia" value="${familiaSubfamilia}" checked><span>${familiaSubfamilia}</span></label>`;
-                            }
                         }
                     }
                 }
@@ -239,36 +195,6 @@ function processarResultado(tabpadraoData, bddicData, tabdistData) {
         }
     });
 }
-
-// Remover o evento de mudança do checkbox "Marcar todos"
-const marcarTodosCheckbox = document.getElementById('marcarTodos');
-marcarTodosCheckbox.addEventListener('change', function () {
-    const checkboxes = document.querySelectorAll('input[name="familiaSubfamilia"]');
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = this.checked;
-    });
-});
-
-
-// Função para lidar com a seleção/desmarcação dos checkboxes
-function handleCheckboxChange() {
-    const checkboxes = document.querySelectorAll('input[name="familiaSubfamilia"]');
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const selectedValue = this.value;
-            const tableRows = document.querySelectorAll('#resultado tbody tr');
-            tableRows.forEach(row => {
-                if (row.getAttribute('data-subfamilia') === selectedValue) {
-                    row.style.display = this.checked ? 'table-row' : 'none';
-                }
-            });
-        });
-    });
-}
-
-// Chamar a função para lidar com a seleção/desmarcação dos checkboxes
-handleCheckboxChange();
-
 
 </script>
 
