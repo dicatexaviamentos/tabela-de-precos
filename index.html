@@ -1,202 +1,257 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dicatex Aviamentos</title>
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f8f9fa;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dicatex Aviamentos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
 
-    #container {
-        width: 21cm;
-        margin: 0 auto;
-        padding: 1cm;
-        background-color: #ffffff;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
+        #container {
+            width: 21cm;
+            margin: 0 auto;
+            padding: 1cm;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
 
-    h1 {
-        text-align: center;
-        margin-top: 0;
-        margin-bottom: 20px;
-    }
+        h1 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
 
-    label {
-        display: block;
-        margin-bottom: 10px;
-        font-weight: bold;
-    }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
 
-    #processar {
-        display: block;
-        margin-bottom: 20px;
-        padding: 10px 20px;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
-        transition: background-color 0.3s;
-    }
+        #processar {
+            display: block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
 
-    #processar:hover {
-        background-color: #45a049;
-    }
+        #processar:hover {
+            background-color: #45a049;
+        }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 20px;
-        display: none; /* Inicialmente ocultar a tabela */
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            display: none;
+            /* Inicialmente ocultar a tabela */
+        }
 
-    th, td {
-        border: 1px solid #dddddd;
-        padding: 8px;
-        font-size: 14px; /* Definindo o tamanho da fonte para as células */
-    }
+        th,
+        td {
+            border: 1px solid #dddddd;
+            padding: 8px;
+            font-size: 14px;
+            /* Definindo o tamanho da fonte para as células */
+        }
 
-    th {
-        background-color: #f2f2f2;
-        font-weight: bold;
-    }
-</style>
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+    </style>
 </head>
+
 <body>
 
-<div id="container">
-    <h1>Tabela de Preços Dicatex</h1>
+    <div id="container">
+        <h1>Tabela de Preços Dicatex</h1>
 
-    <button id="processar">Processar</button>
+        <button id="processar">Processar</button>
 
-    <table id="resultado">
-        <thead>
-            <tr>
-                <th>Categoria</th>
-                <th>Produto</th>
-                <th>Padrão</th>
-                <th>Distribuidor</th> <!-- Nova coluna -->
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-</div>
+        <table id="resultado">
+            <thead>
+                <tr>
+                    <th>Categoria</th>
+                    <th>Produto</th>
+                    <th>Padrão</th>
+                    <th>Distribuidor</th> <!-- Nova coluna -->
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
-<script>
-document.getElementById("processar").addEventListener("click", function() {
-    // Fazendo a leitura dos arquivos CSV
-    fetch('tabpadrao.csv')
-        .then(response => response.text())
-        .then(tabpadraoData => {
-            fetch('bddic.csv')
+    <script>
+
+        function formatarNomeProduto(nomeProduto) {
+            if (nomeProduto.includes('LINHA ALFA P/CANELINHA 150')) {
+                return 'LINHA ALFA P/CANELINHA 150 15000M';
+            } else if (nomeProduto.includes('LINHA ALFA 120 10000M')) {
+                return 'LINHA ALFA 120 10000M';
+            } else if (nomeProduto.includes('LINHA ALFA 120 1500J')) {
+                return 'LINHA ALFA 120 1500J';
+            } else if (nomeProduto.includes('LINHA ALFA 120 5000M')) {
+                return 'LINHA ALFA 120 5000M';
+            } else if (nomeProduto.includes('LINHA ALFA 36 5000M')) {
+                return 'LINHA ALFA 36 5000M';
+            } else if (nomeProduto.includes('LINHA ALFA 50 5000M')) {
+                return 'LINHA ALFA 50 5000M';
+            } else if (nomeProduto.includes('LINHA ALFA 80 5000M')) {
+                return 'LINHA ALFA 80 5000M';
+            } else {
+                return nomeProduto; // Retorna o nome do produto original se não corresponder a nenhum dos padrões
+            }
+        }
+
+
+        document.getElementById("processar").addEventListener("click", function () {
+            // Fazendo a leitura dos arquivos CSV
+            fetch('tabpadrao.csv')
                 .then(response => response.text())
-                .then(bddicData => {
-                    fetch('tabdist.csv') // Obtendo o terceiro arquivo
+                .then(tabpadraoData => {
+                    fetch('bddic.csv')
                         .then(response => response.text())
-                        .then(tabdistData => {
-                            processarResultado(tabpadraoData, bddicData, tabdistData); // Passando todos os dados para processar
+                        .then(bddicData => {
+                            fetch('tabdist.csv') // Obtendo o terceiro arquivo
+                                .then(response => response.text())
+                                .then(tabdistData => {
+                                    processarResultado(tabpadraoData, bddicData, tabdistData); // Passando todos os dados para processar
+                                });
                         });
                 });
         });
-});
 
 
-function processarResultado(tabpadraoData, bddicData, tabdistData) {
-    const tableBody = document.querySelector('#resultado tbody');
-    tableBody.innerHTML = ''; // Limpar tabela anterior, se houver
+        function processarResultado(tabpadraoData, bddicData, tabdistData) {
+            const tableBody = document.querySelector('#resultado tbody');
+            tableBody.innerHTML = ''; // Limpar tabela anterior, se houver
 
-    const tabpadraoLinhas = tabpadraoData.split('\n').slice(1);
-    const bddicLinhas = bddicData.split('\n').slice(1);
-    const tabdistLinhas = tabdistData.split('\n').slice(1); // Separando linhas do novo arquivo
+            const tabpadraoLinhas = tabpadraoData.split('\n').slice(1);
+            const bddicLinhas = bddicData.split('\n').slice(1);
+            const tabdistLinhas = tabdistData.split('\n').slice(1); // Separando linhas do novo arquivo
 
-    const ignorarPalavras = [
-        "2ª", "SEGUNDA", "2º", "KIT", "*", 
-        "BONES", "CONE", "BORRACHA", "BEHA", "CARNEIRA", 
-        "CORANTE", "FLAVINA", "ESTAMPA", "100%", "INDUSTRIALIZACAO", 
-        "REBOBINAR", "COSTURA", "TRICHE", "ALVEJADO", "CORES"
-    ];
+            const ignorarPalavras = [
+                "2ª", "SEGUNDA", "2º", "KIT", "*",
+                "BONES", "CONE", "BORRACHA", "BEHA", "CARNEIRA",
+                "CORANTE", "FLAVINA", "ESTAMPA", "100%", "INDUSTRIALIZACAO",
+                "REBOBINAR", "COSTURA", "TRICHE", "ALVEJADO", "CORES"
+            ];
 
-    const familiasSubfamilias = {};
+            const familiasSubfamilias = {};
 
-    tabpadraoLinhas.forEach(tabpadraoLinha => {
-        const tabpadraoCols = tabpadraoLinha.split(';');
-        const nomeProdutoTabpadrao = tabpadraoCols[2];
-        const descricaoProdutoTabpadrao = tabpadraoCols[2];
-        const precoVenda = parseFloat(tabpadraoCols[3].replace(',', '.'));
+            tabpadraoLinhas.forEach(tabpadraoLinha => {
+                const tabpadraoCols = tabpadraoLinha.split(';');
+                const nomeProdutoTabpadrao = tabpadraoCols[2];
+                const descricaoProdutoTabpadrao = tabpadraoCols[2];
+                const precoVenda = parseFloat(tabpadraoCols[3].replace(',', '.'));
 
-        // Verifica se o preço de venda é um número válido
-        if (!isNaN(precoVenda)) {
-            const precoVendaFormatted = precoVenda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço padrão
+                // Verifica se o preço de venda é um número válido
+                if (!isNaN(precoVenda)) {
+                    const precoVendaFormatted = precoVenda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço padrão
 
-            // Verifica se a descrição do produto contém alguma palavra a ser ignorada
-            if (!ignorarPalavras.some(palavra => descricaoProdutoTabpadrao.includes(palavra))) {
-                const produtoBddic = bddicLinhas.find(bddicLinha => {
-                    const bddicCols = bddicLinha.split(';');
-                    const nomeProdutoBddic = bddicCols[4];
-                    return nomeProdutoBddic === nomeProdutoTabpadrao;
-                });
+                    // Verifica se a descrição do produto contém alguma palavra a ser ignorada
+                    if (!ignorarPalavras.some(palavra => descricaoProdutoTabpadrao.includes(palavra))) {
+                        const produtoBddic = bddicLinhas.find(bddicLinha => {
+                            const bddicCols = bddicLinha.split(';');
+                            const nomeProdutoBddic = bddicCols[4];
+                            return nomeProdutoBddic === nomeProdutoTabpadrao;
+                        });
 
-                if (produtoBddic) {
-                    const bddicCols = produtoBddic.split(';');
-                    const familiaSubfamilia = `${bddicCols[0]} - ${bddicCols[1]}`;
-                    const familia = bddicCols[0];
-                    const subfamilia = bddicCols[1];
+                        if (produtoBddic) {
+                            const bddicCols = produtoBddic.split(';');
+                            const familiaSubfamilia = `${bddicCols[0]} - ${bddicCols[1]}`;
+                            const familia = bddicCols[0];
+                            const subfamilia = bddicCols[1];
 
-                    // Obtendo o preço do distribuidor
-                    const produtoTabdist = tabdistLinhas.find(tabdistLinha => {
-                        const tabdistCols = tabdistLinha.split(';');
-                        const nomeProdutoTabdist = tabdistCols[2];
-                        return nomeProdutoTabdist === nomeProdutoTabpadrao;
-                    });
+                            // Obtendo o preço do distribuidor
+                            const produtoTabdist = tabdistLinhas.find(tabdistLinha => {
+                                const tabdistCols = tabdistLinha.split(';');
+                                const nomeProdutoTabdist = tabdistCols[2];
+                                return nomeProdutoTabdist === nomeProdutoTabpadrao;
+                            });
 
-                    if (produtoTabdist) {
-                        const tabdistCols = produtoTabdist.split(';');
-                        const precoDistribuidor = parseFloat(tabdistCols[3].replace(',', '.')); // Formatando preço de distribuidor
+                            if (produtoTabdist) {
+                                const tabdistCols = produtoTabdist.split(';');
+                                const precoDistribuidor = parseFloat(tabdistCols[3].replace(',', '.')); // Formatando preço de distribuidor
 
-                        // Verifica se o preço de distribuidor é um número válido
-                        if (!isNaN(precoDistribuidor)) {
-                            const precoDistribuidorFormatted = precoDistribuidor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço de distribuidor
+                                // Verifica se o preço de distribuidor é um número válido
+                                if (!isNaN(precoDistribuidor)) {
+                                    const precoDistribuidorFormatted = precoDistribuidor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço de distribuidor
 
-                            let existingRow = tableBody.querySelector(`tr[data-subfamilia="${familia}-${subfamilia}"]`);
-                            if (!existingRow) {
-                                existingRow = document.createElement('tr');
-                                existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
-                                existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${nomeProdutoTabpadrao}</td><td>${precoVendaFormatted}</td><td>${precoDistribuidorFormatted}</td>`;
-                                tableBody.appendChild(existingRow);
+                                    let existingRow = tableBody.querySelector(`tr[data-subfamilia="${familia}-${subfamilia}"]`);
+                                    if (!existingRow) {
+                                        existingRow = document.createElement('tr');
+                                        existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
+                                        existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${formatarNomeProduto(nomeProdutoTabpadrao)}</td><td>${precoVendaFormatted}</td><td>${precoDistribuidorFormatted}</td>`;
+                                        tableBody.appendChild(existingRow);
 
-                                familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda: precoVendaFormatted, precoDistribuidor: precoDistribuidorFormatted, nomeProdutoTabpadrao }];
-                            } else {
-                                const existingProducts = familiasSubfamilias[`${familia}-${subfamilia}`];
-                                const hasPrice = existingProducts.some(product => product.precoVenda === precoVendaFormatted);
-                                if (!hasPrice) {
-                                    existingProducts.push({ precoVenda: precoVendaFormatted, precoDistribuidor: precoDistribuidorFormatted, nomeProdutoTabpadrao });
-                                    const productNames = existingProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
-                                    const priceCell = existingRow.querySelector('td:nth-child(3)');
-                                    priceCell.innerHTML += `<br>${precoVendaFormatted}`;
-                                    const distributorPriceCell = existingRow.querySelector('td:nth-child(4)');
-                                    distributorPriceCell.innerHTML += `<br>${precoDistribuidorFormatted}`;
-                                    const productCell = existingRow.querySelector('td:nth-child(2)');
-                                    productCell.innerHTML = productNames;
+                                        familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda: precoVendaFormatted, precoDistribuidor: precoDistribuidorFormatted, nomeProdutoTabpadrao }];
+                                    } else {
+                                        const existingProducts = familiasSubfamilias[`${familia}-${subfamilia}`];
+                                        const hasPrice = existingProducts.some(product => product.precoVenda === precoVendaFormatted);
+                                        if (!hasPrice) {
+                                            existingProducts.push({ precoVenda: precoVendaFormatted, precoDistribuidor: precoDistribuidorFormatted, nomeProdutoTabpadrao });
+                                            const productNames = existingProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
+                                            const priceCell = existingRow.querySelector('td:nth-child(3)');
+                                            priceCell.innerHTML += `<br>${precoVendaFormatted}`;
+                                            const distributorPriceCell = existingRow.querySelector('td:nth-child(4)');
+                                            distributorPriceCell.innerHTML += `<br>${precoDistribuidorFormatted}`;
+                                            const productCell = existingRow.querySelector('td:nth-child(2)');
+                                            productCell.innerHTML = productNames;
+
+                                            // Check if the current subfamily corresponds to the ones that need product name adjustment
+                                            if (familia === 'VIES ELASTICO' && (subfamilia === '14MM' || subfamilia === '16MM' || subfamilia === '20MM' || subfamilia === '25MM' || subfamilia === '30MM')) {
+                                                const productNameCounts = {};
+                                                existingProducts.forEach(product => {
+                                                    productNameCounts[product.nomeProdutoTabpadrao] = (productNameCounts[product.nomeProdutoTabpadrao] || 0) + 1;
+                                                });
+
+                                                let mostRepeatedProductName = '';
+                                                let maxCount = 0;
+                                                for (const productName in productNameCounts) {
+                                                    if (productNameCounts[productName] > maxCount && !productName.includes('BRANCO') && !productName.includes('PRETO')) {
+                                                        maxCount = productNameCounts[productName];
+                                                        mostRepeatedProductName = productName;
+                                                    }
+                                                }
+
+                                                // Replace the most repeated product name with the desired one
+                                                const newProductName = `VIES EL. ${subfamilia} COLOR`;
+                                                if (mostRepeatedProductName !== newProductName) {
+                                                    productCell.innerHTML = productNames.replace(new RegExp(mostRepeatedProductName, 'g'), newProductName);
+                                                }
+                                            }
+
+                                            
+
+                                        }
+                                    }
+
+                                    // Exibir a tabela após o processamento dos resultados
+                                    document.querySelector('table').style.display = 'table';
                                 }
                             }
-
-                            // Exibir a tabela após o processamento dos resultados
-                            document.querySelector('table').style.display = 'table';
                         }
                     }
                 }
-            }
+            });
         }
-    });
-}
 
-</script>
+
+    </script>
 
 </body>
+
 </html>
