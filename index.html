@@ -33,11 +33,11 @@
             font-weight: bold;
         }
 
-        #processar {
-            display: block;
+        #processar, #imprimir {
+            display: inline-block;
             margin-bottom: 20px;
             padding: 10px 20px;
-            background-color: #4CAF50;
+            background-color: #1d0c5c;
             color: white;
             border: none;
             border-radius: 5px;
@@ -46,8 +46,8 @@
             transition: background-color 0.3s;
         }
 
-        #processar:hover {
-            background-color: #45a049;
+        #processar:hover, #imprimir:hover {
+            background-color: #1f1c77;
         }
 
         table {
@@ -70,15 +70,26 @@
             background-color: #f2f2f2;
             font-weight: bold;
         }
+
+        @media print {
+            /* Esconder o botão de processar, botão de imprimir, imagens e botão de impressão durante a impressão */
+            #processar, #imprimir, img, button {
+                display: none;
+            }
+        }
     </style>
 </head>
 
 <body>
 
     <div id="container">
+        <img src="cabecalho.jpg" alt="Cabeçalho" style="display: block; margin: 0 auto; width: 100%; max-width: 100%;" />
         <h1>Tabela de Preços Dicatex</h1>
 
-        <button id="processar">Processar</button>
+        <div>
+            <button id="processar">Processar</button>
+            <button id="imprimir" onclick="window.print()">Imprimir</button>
+        </div>
 
         <table id="resultado">
             <thead>
@@ -91,6 +102,7 @@
             </thead>
             <tbody></tbody>
         </table>
+        <img src="rodape.jpg" alt="Rodapé" style="display: block; margin: 20px auto 0; width: 100%; max-width: 100%;" />
     </div>
 
     <script>
