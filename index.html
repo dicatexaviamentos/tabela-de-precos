@@ -110,10 +110,13 @@
                 return 'LINHA ALFA 50 5000M';
             } else if (nomeProduto.includes('LINHA ALFA 80 5000M')) {
                 return 'LINHA ALFA 80 5000M';
+
             } else {
                 return nomeProduto; // Retorna o nome do produto original se não corresponder a nenhum dos padrões
             }
         }
+
+
 
 
         document.getElementById("processar").addEventListener("click", function () {
@@ -156,6 +159,16 @@
                 const nomeProdutoTabpadrao = tabpadraoCols[2];
                 const descricaoProdutoTabpadrao = tabpadraoCols[2];
                 const precoVenda = parseFloat(tabpadraoCols[3].replace(',', '.'));
+
+
+
+
+
+
+
+
+
+
 
                 // Verifica se o preço de venda é um número válido
                 if (!isNaN(precoVenda)) {
@@ -234,7 +247,64 @@
                                                 }
                                             }
 
-                                            
+
+
+
+
+
+
+
+                                            if (familia === 'LINHAS' && subfamilia === 'OVERLOQUE') {
+                                                const newProductName = (productName) => {
+                                                    if (productName.includes('LINHA 100G OVER ALFA') && !productName.includes('9900') && !productName.includes('0100')) {
+                                                        return 'LINHA 100G OVER ALFA COLOR';
+                                                    } else if (productName.includes('LINHA 500G OVER ALFA') && !productName.includes('9900') && !productName.includes('0100')) {
+                                                        return 'LINHA 500G OVER ALFA COLOR';
+                                                    }
+                                                    return productName;
+                                                };
+
+                                                const updatedProducts = existingProducts.map(product => ({
+                                                    ...product,
+                                                    nomeProdutoTabpadrao: newProductName(product.nomeProdutoTabpadrao)
+                                                }));
+
+                                                // Update product cell with updated product names
+                                                const updatedProductNames = updatedProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
+                                                productCell.innerHTML = updatedProductNames;
+
+                                                // Update the existing products array with updated products
+                                                familiasSubfamilias[`${familia}-${subfamilia}`] = updatedProducts;
+                                            }
+
+
+                                            if (familia === 'LINHAS' && subfamilia === 'BORDAR') {
+                                                const newProductName = (productName) => {
+                                                    if (productName.includes('P/ BORDAR ALFA') && !productName.includes('9900') && !productName.includes('0100')) {
+                                                        return 'LINHA P/ BORDAR ALFA';
+                                                    } else if (productName.includes('P/ BORDAR BETA') && !productName.includes('9900') && !productName.includes('0100')) {
+                                                        return 'LINHA P/ BORDAR BETA';
+                                                    }
+                                                    return productName;
+                                                };
+
+                                                const updatedProducts = existingProducts.map(product => ({
+                                                    ...product,
+                                                    nomeProdutoTabpadrao: newProductName(product.nomeProdutoTabpadrao)
+                                                }));
+
+                                                // Update product cell with updated product names
+                                                const updatedProductNames = updatedProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
+                                                productCell.innerHTML = updatedProductNames;
+
+                                                // Update the existing products array with updated products
+                                                familiasSubfamilias[`${familia}-${subfamilia}`] = updatedProducts;
+                                            }
+
+
+
+
+
 
                                         }
                                     }
