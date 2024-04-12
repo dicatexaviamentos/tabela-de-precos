@@ -33,7 +33,8 @@
             font-weight: bold;
         }
 
-        #processar, #imprimir {
+        #processar,
+        #imprimir {
             display: inline-block;
             margin-bottom: 20px;
             padding: 10px 20px;
@@ -46,7 +47,8 @@
             transition: background-color 0.3s;
         }
 
-        #processar:hover, #imprimir:hover {
+        #processar:hover,
+        #imprimir:hover {
             background-color: #1f1c77;
         }
 
@@ -62,7 +64,7 @@
         td {
             border: 1px solid #dddddd;
             padding: 8px;
-            font-size: 14px;
+            font-size: 12px; /* Alterado o tamanho da fonte */
             /* Definindo o tamanho da fonte para as células */
         }
 
@@ -73,7 +75,10 @@
 
         @media print {
             /* Esconder o botão de processar, botão de imprimir, imagens e botão de impressão durante a impressão */
-            #processar, #imprimir, img, button {
+            #processar,
+            #imprimir,
+            img,
+            button {
                 display: none;
             }
         }
@@ -106,31 +111,6 @@
     </div>
 
     <script>
-
-        function formatarNomeProduto(nomeProduto) {
-            if (nomeProduto.includes('LINHA ALFA P/CANELINHA 150')) {
-                return 'LINHA ALFA P/CANELINHA 150 15000M';
-            } else if (nomeProduto.includes('LINHA ALFA 120 10000M')) {
-                return 'LINHA ALFA 120 10000M';
-            } else if (nomeProduto.includes('LINHA ALFA 120 1500J')) {
-                return 'LINHA ALFA 120 1500J';
-            } else if (nomeProduto.includes('LINHA ALFA 120 5000M')) {
-                return 'LINHA ALFA 120 5000M';
-            } else if (nomeProduto.includes('LINHA ALFA 36 5000M')) {
-                return 'LINHA ALFA 36 5000M';
-            } else if (nomeProduto.includes('LINHA ALFA 50 5000M')) {
-                return 'LINHA ALFA 50 5000M';
-            } else if (nomeProduto.includes('LINHA ALFA 80 5000M')) {
-                return 'LINHA ALFA 80 5000M';
-
-            } else {
-                return nomeProduto; // Retorna o nome do produto original se não corresponder a nenhum dos padrões
-            }
-        }
-
-
-
-
         document.getElementById("processar").addEventListener("click", function () {
             // Fazendo a leitura dos arquivos CSV
             fetch('tabpadrao.csv')
@@ -161,7 +141,9 @@
                 "2ª", "SEGUNDA", "2º", "KIT", "*",
                 "BONES", "CONE", "BORRACHA", "BEHA", "CARNEIRA",
                 "CORANTE", "FLAVINA", "ESTAMPA", "100%", "INDUSTRIALIZACAO",
-                "REBOBINAR", "COSTURA", "TRICHE", "ALVEJADO", "CORES"
+                "REBOBINAR", "COSTURA", "TRICHE", "ALVEJADO", "ALFA FOSCA",
+                 "ALFA MISTA", "AMOSTRA", "FOTOCROMIA", "GLOW",
+                 "TEMPERATURA", "LINHA BORDAR", "CORES"
             ];
 
             const familiasSubfamilias = {};
@@ -171,16 +153,6 @@
                 const nomeProdutoTabpadrao = tabpadraoCols[2];
                 const descricaoProdutoTabpadrao = tabpadraoCols[2];
                 const precoVenda = parseFloat(tabpadraoCols[3].replace(',', '.'));
-
-
-
-
-
-
-
-
-
-
 
                 // Verifica se o preço de venda é um número válido
                 if (!isNaN(precoVenda)) {
@@ -207,131 +179,233 @@
                                 return nomeProdutoTabdist === nomeProdutoTabpadrao;
                             });
 
+                            let precoDistribuidorFormatted = '-------'; // Definindo um hífen como padrão para os preços não encontrados
+
                             if (produtoTabdist) {
                                 const tabdistCols = produtoTabdist.split(';');
-                                const precoDistribuidor = parseFloat(tabdistCols[3].replace(',', '.')); // Formatando preço de distribuidor
+                                const precoDistribuidorValue = parseFloat(tabdistCols[3].replace(',', '.')); // Formatando preço de distribuidor
 
                                 // Verifica se o preço de distribuidor é um número válido
-                                if (!isNaN(precoDistribuidor)) {
-                                    const precoDistribuidorFormatted = precoDistribuidor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço de distribuidor
+                                if (!isNaN(precoDistribuidorValue)) {
+                                    precoDistribuidorFormatted = precoDistribuidorValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço de distribuidor
+                                }
+                            }
 
-                                    let existingRow = tableBody.querySelector(`tr[data-subfamilia="${familia}-${subfamilia}"]`);
-                                    if (!existingRow) {
-                                        existingRow = document.createElement('tr');
-                                        existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
-                                        existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${formatarNomeProduto(nomeProdutoTabpadrao)}</td><td>${precoVendaFormatted}</td><td>${precoDistribuidorFormatted}</td>`;
-                                        tableBody.appendChild(existingRow);
+                            let existingRow = tableBody.querySelector(`tr[data-subfamilia="${familia}-${subfamilia}"]`);
+                            if (!existingRow) {
+                                existingRow = document.createElement('tr');
+                                existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
+                                existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${formatarNomeProduto(nomeProdutoTabpadrao)}</td><td>${precoVendaFormatted}</td><td>${precoDistribuidorFormatted}</td>`;
+                                tableBody.appendChild(existingRow);
 
-                                        familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda: precoVendaFormatted, precoDistribuidor: precoDistribuidorFormatted, nomeProdutoTabpadrao }];
-                                    } else {
-                                        const existingProducts = familiasSubfamilias[`${familia}-${subfamilia}`];
-                                        const hasPrice = existingProducts.some(product => product.precoVenda === precoVendaFormatted);
-                                        if (!hasPrice) {
-                                            existingProducts.push({ precoVenda: precoVendaFormatted, precoDistribuidor: precoDistribuidorFormatted, nomeProdutoTabpadrao });
-                                            const productNames = existingProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
-                                            const priceCell = existingRow.querySelector('td:nth-child(3)');
-                                            priceCell.innerHTML += `<br>${precoVendaFormatted}`;
-                                            const distributorPriceCell = existingRow.querySelector('td:nth-child(4)');
-                                            distributorPriceCell.innerHTML += `<br>${precoDistribuidorFormatted}`;
-                                            const productCell = existingRow.querySelector('td:nth-child(2)');
-                                            productCell.innerHTML = productNames;
+                                familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda: precoVendaFormatted, precoDistribuidor: precoDistribuidorFormatted, nomeProdutoTabpadrao }];
+                            } else {
+                                const existingProducts = familiasSubfamilias[`${familia}-${subfamilia}`];
+                                const hasPrice = existingProducts.some(product => product.precoVenda === precoVendaFormatted);
+                                if (!hasPrice) {
+                                    existingProducts.push({ precoVenda: precoVendaFormatted, precoDistribuidor: precoDistribuidorFormatted, nomeProdutoTabpadrao });
+                                    const productNames = existingProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
+                                    const priceCell = existingRow.querySelector('td:nth-child(3)');
+                                    priceCell.innerHTML += `<br>${precoVendaFormatted}`;
+                                    const distributorPriceCell = existingRow.querySelector('td:nth-child(4)');
+                                    distributorPriceCell.innerHTML += `<br>${precoDistribuidorFormatted}`;
+                                    const productCell = existingRow.querySelector('td:nth-child(2)');
+                                    productCell.innerHTML = productNames;
 
-                                            // Check if the current subfamily corresponds to the ones that need product name adjustment
-                                            if (familia === 'VIES ELASTICO' && (subfamilia === '14MM' || subfamilia === '16MM' || subfamilia === '20MM' || subfamilia === '25MM' || subfamilia === '30MM')) {
-                                                const productNameCounts = {};
-                                                existingProducts.forEach(product => {
-                                                    productNameCounts[product.nomeProdutoTabpadrao] = (productNameCounts[product.nomeProdutoTabpadrao] || 0) + 1;
-                                                });
+                                    // Check if the current subfamily corresponds to the ones that need product name adjustment
+                                    if (familia === 'VIES ELASTICO' && (subfamilia === '14MM' || subfamilia === '16MM' || subfamilia === '20MM' || subfamilia === '25MM' || subfamilia === '30MM')) {
+                                        const productNameCounts = {};
+                                        existingProducts.forEach(product => {
+                                            productNameCounts[product.nomeProdutoTabpadrao] = (productNameCounts[product.nomeProdutoTabpadrao] || 0) + 1;
+                                        });
 
-                                                let mostRepeatedProductName = '';
-                                                let maxCount = 0;
-                                                for (const productName in productNameCounts) {
-                                                    if (productNameCounts[productName] > maxCount && !productName.includes('BRANCO') && !productName.includes('PRETO')) {
-                                                        maxCount = productNameCounts[productName];
-                                                        mostRepeatedProductName = productName;
-                                                    }
-                                                }
-
-                                                // Replace the most repeated product name with the desired one
-                                                const newProductName = `VIES EL. ${subfamilia} COLOR`;
-                                                if (mostRepeatedProductName !== newProductName) {
-                                                    productCell.innerHTML = productNames.replace(new RegExp(mostRepeatedProductName, 'g'), newProductName);
-                                                }
+                                        let mostRepeatedProductName = '';
+                                        let maxCount = 0;
+                                        for (const productName in productNameCounts) {
+                                            if (productNameCounts[productName] > maxCount && !productName.includes('BRANCO') && !productName.includes('PRETO')) {
+                                                maxCount = productNameCounts[productName];
+                                                mostRepeatedProductName = productName;
                                             }
+                                        }
 
-
-
-
-
-
-
-
-                                            if (familia === 'LINHAS' && subfamilia === 'OVERLOQUE') {
-                                                const newProductName = (productName) => {
-                                                    if (productName.includes('LINHA 100G OVER ALFA') && !productName.includes('9900') && !productName.includes('0100')) {
-                                                        return 'LINHA 100G OVER ALFA COLOR';
-                                                    } else if (productName.includes('LINHA 500G OVER ALFA') && !productName.includes('9900') && !productName.includes('0100')) {
-                                                        return 'LINHA 500G OVER ALFA COLOR';
-                                                    }
-                                                    return productName;
-                                                };
-
-                                                const updatedProducts = existingProducts.map(product => ({
-                                                    ...product,
-                                                    nomeProdutoTabpadrao: newProductName(product.nomeProdutoTabpadrao)
-                                                }));
-
-                                                // Update product cell with updated product names
-                                                const updatedProductNames = updatedProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
-                                                productCell.innerHTML = updatedProductNames;
-
-                                                // Update the existing products array with updated products
-                                                familiasSubfamilias[`${familia}-${subfamilia}`] = updatedProducts;
-                                            }
-
-
-                                            if (familia === 'LINHAS' && subfamilia === 'BORDAR') {
-                                                const newProductName = (productName) => {
-                                                    if (productName.includes('P/ BORDAR ALFA') && !productName.includes('9900') && !productName.includes('0100')) {
-                                                        return 'LINHA P/ BORDAR ALFA';
-                                                    } else if (productName.includes('P/ BORDAR BETA') && !productName.includes('9900') && !productName.includes('0100')) {
-                                                        return 'LINHA P/ BORDAR BETA';
-                                                    }
-                                                    return productName;
-                                                };
-
-                                                const updatedProducts = existingProducts.map(product => ({
-                                                    ...product,
-                                                    nomeProdutoTabpadrao: newProductName(product.nomeProdutoTabpadrao)
-                                                }));
-
-                                                // Update product cell with updated product names
-                                                const updatedProductNames = updatedProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
-                                                productCell.innerHTML = updatedProductNames;
-
-                                                // Update the existing products array with updated products
-                                                familiasSubfamilias[`${familia}-${subfamilia}`] = updatedProducts;
-                                            }
-
-
-
-
-
-
+                                        // Replace the most repeated product name with the desired one
+                                        const newProductName = `VIES EL. ${subfamilia} COLOR`;
+                                        if (mostRepeatedProductName !== newProductName) {
+                                            productCell.innerHTML = productNames.replace(new RegExp(mostRepeatedProductName, 'g'), newProductName);
                                         }
                                     }
 
-                                    // Exibir a tabela após o processamento dos resultados
-                                    document.querySelector('table').style.display = 'table';
+
+
+
+
+                                    if (familia === 'LINHAS' && subfamilia === 'OVERLOQUE') {
+                                        const newProductName = (productName) => {
+                                            if (productName.includes('LINHA 100G OVER ALFA') && !productName.includes('9900') && !productName.includes('0100')) {
+                                                return 'LINHA 100G OVER ALFA COLOR';
+                                            } else if (productName.includes('LINHA 500G OVER ALFA') && !productName.includes('9900') && !productName.includes('0100')) {
+                                                return 'LINHA 500G OVER ALFA COLOR';
+                                            }
+                                            return productName;
+                                        };
+
+                                        const updatedProducts = existingProducts.map(product => ({
+                                            ...product,
+                                            nomeProdutoTabpadrao: newProductName(product.nomeProdutoTabpadrao)
+                                        }));
+
+                                        // Update product cell with updated product names
+                                        const updatedProductNames = updatedProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
+                                        productCell.innerHTML = updatedProductNames;
+
+                                        // Update the existing products array with updated products
+                                        familiasSubfamilias[`${familia}-${subfamilia}`] = updatedProducts;
+                                    }
+
+
+
+
+
+
+                                    if (familia === 'LINHAS' && subfamilia === 'BORDAR') {
+                                        const newProductName = (productName) => {
+                                            if (productName.includes('P/ BORDAR ALFA') && !productName.includes('9900') && !productName.includes('0100')) {
+                                                return 'LINHA P/ BORDAR ALFA';
+                                            } else if (productName.includes('P/ BORDAR BETA') && !productName.includes('9900') && !productName.includes('0100')) {
+                                                return 'LINHA P/ BORDAR BETA';
+                                            }
+                                            return productName;
+                                        };
+
+                                        const updatedProducts = existingProducts.map(product => ({
+                                            ...product,
+                                            nomeProdutoTabpadrao: newProductName(product.nomeProdutoTabpadrao)
+                                        }));
+
+                                        // Update product cell with updated product names
+                                        const updatedProductNames = updatedProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
+                                        productCell.innerHTML = updatedProductNames;
+
+                                        // Update the existing products array with updated products
+                                        familiasSubfamilias[`${familia}-${subfamilia}`] = updatedProducts;
+                                    }
+
+
+
+
+                                    
+                                    if (familia === 'AGULHAS' && subfamilia === 'GALONEIRA') {
+                                        const newProductName = (productName) => {
+                                            if (productName.includes('AGULHA GALONEIRA B 63') ) {
+                                                return 'AGULHA GALONEIRA B 63';
+                                            } else if (productName.includes('AGULHA GALONEIRA UY 128') ) {
+                                                return 'AGULHA GALONEIRA UY 128';
+                                            }
+                                            return productName;
+                                        };
+
+                                        const updatedProducts = existingProducts.map(product => ({
+                                            ...product,
+                                            nomeProdutoTabpadrao: newProductName(product.nomeProdutoTabpadrao)
+                                        }));
+
+                                        // Update product cell with updated product names
+                                        const updatedProductNames = updatedProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
+                                        productCell.innerHTML = updatedProductNames;
+
+                                        // Update the existing products array with updated products
+                                        familiasSubfamilias[`${familia}-${subfamilia}`] = updatedProducts;
+                                    }
+
+
+
+
+
+
+
+
+
+
                                 }
                             }
+
+                            // Exibir a tabela após o processamento dos resultados
+                            document.querySelector('table').style.display = 'table';
                         }
                     }
+                }
+            });
+
+            // Adicionando famílias/subfamílias sem preço de distribuidor à tabela
+            tabdistLinhas.forEach(tabdistLinha => {
+                const tabdistCols = tabdistLinha.split(';');
+                const nomeProdutoTabdist = tabdistCols[2];
+                const familiaTabdist = tabdistCols[0];
+                const subfamiliaTabdist = tabdistCols[1];
+                const precoDistribuidorValue = parseFloat(tabdistCols[3].replace(',', '.'));
+
+                if (!isNaN(precoDistribuidorValue)) {
+                    return; // Se tiver preço de distribuidor, não precisa ser adicionado novamente
+                }
+
+                const existingRow = tableBody.querySelector(`tr[data-subfamilia="${familiaTabdist}-${subfamiliaTabdist}"]`);
+                if (!existingRow) {
+                    const familiaSubfamilia = `${familiaTabdist} - ${subfamiliaTabdist}`;
+                    const newRow = document.createElement('tr');
+                    newRow.setAttribute('data-subfamilia', `${familiaTabdist}-${subfamiliaTabdist}`);
+                    newRow.innerHTML = `<td>${familiaSubfamilia}</td><td>-</td><td>-</td><td>-</td>`;
+                    tableBody.appendChild(newRow);
                 }
             });
         }
 
 
+        function formatarNomeProduto(nomeProduto) {
+            if (nomeProduto.includes('LINHA ALFA P/CANELINHA 150')) {
+                return 'LINHA ALFA P/CANELINHA 150 15000M';
+            } else if (nomeProduto.includes('LINHA ALFA 120 10000M')) {
+                return 'LINHA ALFA 120 10000M';
+            } else if (nomeProduto.includes('LINHA ALFA 120 1500J')) {
+                return 'LINHA ALFA 120 1500J';
+            } else if (nomeProduto.includes('LINHA ALFA 120 5000M')) {
+                return 'LINHA ALFA 120 5000M';
+            } else if (nomeProduto.includes('LINHA ALFA 36 5000M')) {
+                return 'LINHA ALFA 36 5000M';
+            } else if (nomeProduto.includes('LINHA ALFA 50 5000M')) {
+                return 'LINHA ALFA 50 5000M';
+            } else if (nomeProduto.includes('LINHA ALFA 80 5000M')) {
+                return 'LINHA ALFA 80 5000M';
+            } else if (nomeProduto.includes('AGULHA DP X 17')) {
+                return 'AGULHA DP X 17 PONTO FIXO';
+            } else if (nomeProduto.includes('AGULHA ELASTIQUEIRA UY 113')) {
+                return 'AGULHA ELASTIQUEIRA UY 113';
+            } else if (nomeProduto.includes('AGULHA OVERLOQUE')) {
+                return 'AGULHA OVERLOQUE B 27';
+            } else if (nomeProduto.includes('AGULHA P/ RETA CABO FINO')) {
+                return 'AGULHA P/ RETA CABO FINO';
+            } else if (nomeProduto.includes('AGULHA P/ RETA CABO GROS. 134')) {
+                return 'AGULHA P/ RETA CABO GROS.';
+            } else if (nomeProduto.includes('AGULHA P/BORDAR DB X K5')) {
+                return 'AGULHA P/BORDAR DB X K5';
+            } else if (nomeProduto.includes('AGULHA PONTA LANÇA 134 PCL')) {
+                return 'AGULHA PONTA LANÇA 134 PCL';
+            } else if (nomeProduto.includes('AGULHA TQ X 1')) {
+                return 'AGULHA TQ X 1';
+            } else if (nomeProduto.includes('AGULHA 134 SAN DOURADA')) {
+                return 'AGULHA 134 SAN DOURADA';
+           
+
+
+
+
+
+                
+
+
+            } else {
+                return nomeProduto; // Retorna o nome do produto original se não corresponder a nenhum dos padrões
+            }
+        }
     </script>
 
 </body>
