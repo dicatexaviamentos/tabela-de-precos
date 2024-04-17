@@ -119,11 +119,88 @@ td:nth-child(4) {
 
 .family-subfamily {
     font-weight: bold;
-    background-color: #e9ecef;
+    /* Adiciona negrito */
+    background-color: #ffffff;
+    padding: 10px;
+    /* Ajustar o preenchimento para melhor legibilidade na impressão */
+    border-bottom: 3px solid #000000;
+    color: #000000;
 }
 
-@media screen and (max-width: 600px) {
+header {
+    padding: 20px 0;
+    text-align: center;
+    border-collapse: collapse;
+    width: 21cm;
+    margin: 0 auto;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    max-width: 230px; /* Ajuste conforme necessário */
+    margin-right: 20px; /* Espaçamento entre a logo e o texto */
+}
+
+.company-info {
+    font-size: 14px;
+    line-height: 1.5;
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: right;
+}
+
+.company-info p {
+    margin: 5px 0;
+    line-height: 1.2;
+}
+
+
+.company-info p:first-child {
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.company-info p span {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+/* Reduzindo o tamanho da fonte para partes específicas */
+.company-info p span.small-text {
+    font-size: 12px;
+}
+
+@media print {
     table {
-        width: 90%;
+        width: 100%;
+        page-break-inside: avoid;
+        /* Evitar que tabelas sejam divididas entre páginas */
+    }
+
+    th,
+    td {
+        padding: 8px;
+        /* Reduzir o preenchimento das células para melhor ajuste na página */
+    }
+
+    .family-subfamily {
+        font-weight: bold;
+        /* Adiciona negrito */
+        background-color: #ffffff;
+        padding: 10px;
+        /* Ajustar o preenchimento para melhor legibilidade na impressão */
+        border-bottom: 3px solid #000000;
+        color: #000000;
+    }
+
+
+    /* Ocultar botão de impressão durante a impressão */
+    .print-button {
+        display: none;
     }
 }
