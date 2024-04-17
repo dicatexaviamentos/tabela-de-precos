@@ -6,6 +6,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dicatex Aviamentos</title>
     <style>
+        /* Adicionando estilo para a animação de carregamento */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            /* Ajustando o z-index para garantir que a sobreposição esteja acima de tudo */
+        }
+
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid #3498db;
+            width: 50px;
+            height: 50px;
+            -webkit-animation: spin 1s linear infinite;
+            /* Safari */
+            animation: spin 1s linear infinite;
+        }
+
+        @-webkit-keyframes spin {
+            0% {
+                -webkit-transform: rotate(0deg);
+            }
+
+            100% {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Estilo para esconder a sobreposição quando o conteúdo estiver pronto */
+        .loaded {
+            display: none;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background-color: #f8f9fa;
@@ -90,7 +141,13 @@
 
 <body>
 
-    <div class="content-container">
+    <!-- Elemento de sobreposição de carregamento -->
+    <div class="loader-overlay" id="loader">
+        <div class="loader"></div>
+    </div>
+
+    <div class="content-container loaded">
+        <!-- Adicionando a classe "loaded" para esconder o conteúdo até estar pronto -->
         <h2>Tabela de Preços</h2>
 
         <button id="printButton" class="print-button" onclick="printContent()">Imprimir Tabela</button>
@@ -106,6 +163,11 @@
     </div>
 
     <script>
+
+        function showContent() {
+            document.getElementById('loader').style.display = 'none';
+            document.querySelector('.content-container').classList.remove('loaded');
+        }
         const ignorarPalavras = [
             "2ª", "SEGUNDA", "2º", "KIT", "*",
             "BONES", "CONE", "BORRACHA", "BEHA", "CARNEIRA",
@@ -168,145 +230,154 @@
         }
 
         window.onload = function () {
-            // Carregar o arquivo padr.csv
-            fetch('padr.csv')
-                .then(response => response.text())
-                .then(data => {
-                    const rows = data.split('\n').slice(8); // Ignorar cabeçalho e começar a leitura na linha 9
+            // Mostrar o elemento de carregamento ao carregar a página
+            document.getElementById('loader').style.display = 'flex';
+            setTimeout(function () {
+                fetch('padr.csv')
+                    .then(response => response.text())
+                    .then(data => {
+                        const rows = data.split('\n').slice(8); // Ignorar cabeçalho e começar a leitura na linha 9
 
-                    // Carregar o arquivo dica.csv
-                    fetch('dica.csv')
-                        .then(response => response.text())
-                        .then(dicaData => {
-                            const dicaRows = dicaData.split('\n').slice(1); // Ignorar cabeçalho
+                        // Carregar o arquivo dica.csv
+                        fetch('dica.csv')
+                            .then(response => response.text())
+                            .then(dicaData => {
+                                const dicaRows = dicaData.split('\n').slice(1); // Ignorar cabeçalho
 
-                            // Carregar o arquivo dist.csv
-                            fetch('dist.csv')
-                                .then(response => response.text())
-                                .then(distData => {
-                                    const distRows = distData.split('\n').slice(1); // Ignorar cabeçalho
+                                // Carregar o arquivo dist.csv
+                                fetch('dist.csv')
+                                    .then(response => response.text())
+                                    .then(distData => {
+                                        const distRows = distData.split('\n').slice(1); // Ignorar cabeçalho
 
-                                    const groupedProducts = {};
+                                        const groupedProducts = {};
 
-                                    // Agrupar os produtos por família/subfamília
-                                    rows.forEach(row => {
-                                        const columns = row.split(';');
-                                        const productName = columns[2];
-                                        const productPrice = columns[3];
+                                        // Agrupar os produtos por família/subfamília
+                                        rows.forEach(row => {
+                                            const columns = row.split(';');
+                                            const productName = columns[2];
+                                            const productPrice = columns[3];
 
-                                        // Procurar o nome do produto no arquivo dica.csv
-                                        const dicaRow = dicaRows.find(dicaRow => {
-                                            const dicaColumns = dicaRow.split(';');
-                                            return dicaColumns[4] === productName;
-                                        });
+                                            // Procurar o nome do produto no arquivo dica.csv
+                                            const dicaRow = dicaRows.find(dicaRow => {
+                                                const dicaColumns = dicaRow.split(';');
+                                                return dicaColumns[4] === productName;
+                                            });
 
-                                        // Procurar o nome do produto no arquivo dist.csv
-                                        let distributorPrice = '---'; // Preço do distribuidor padrão
-                                        const distRow = distRows.find(distRow => {
-                                            const distColumns = distRow.split(';');
-                                            return distColumns[2] === productName;
-                                        });
+                                            // Procurar o nome do produto no arquivo dist.csv
+                                            let distributorPrice = '---'; // Preço do distribuidor padrão
+                                            const distRow = distRows.find(distRow => {
+                                                const distColumns = distRow.split(';');
+                                                return distColumns[2] === productName;
+                                            });
 
-                                        if (distRow) {
-                                            const distColumns = distRow.split(';');
-                                            distributorPrice = distColumns[3];
-                                        }
+                                            if (distRow) {
+                                                const distColumns = distRow.split(';');
+                                                distributorPrice = distColumns[3];
+                                            }
 
-                                        if (dicaRow && !palavraDeveSerIgnorada(productName)) {
-                                            const dicaColumns = dicaRow.split(';');
-                                            const unitOfMeasure = dicaColumns[11];
-                                            const family = dicaColumns[0];
-                                            const subFamily = dicaColumns[1];
-                                            const familySubfamily = `${family}/${subFamily}`;
+                                            if (dicaRow && !palavraDeveSerIgnorada(productName)) {
+                                                const dicaColumns = dicaRow.split(';');
+                                                const unitOfMeasure = dicaColumns[11];
+                                                const family = dicaColumns[0];
+                                                const subFamily = dicaColumns[1];
+                                                const familySubfamily = `${family}/${subFamily}`;
 
-                                            // Verificar se já existe um produto com o mesmo preço de venda no grupo
-                                            const existingProduct = groupedProducts[familySubfamily]?.products.find(product => product.productPrice === productPrice);
+                                                // Verificar se já existe um produto com o mesmo preço de venda no grupo
+                                                const existingProduct = groupedProducts[familySubfamily]?.products.find(product => product.productPrice === productPrice);
 
-                                            // Se não houver um produto com o mesmo preço de venda, adicione-o ao grupo
-                                            if (!existingProduct) {
-                                                // Adicionar o produto ao grupo correspondente
-                                                if (!groupedProducts[familySubfamily]) {
-                                                    groupedProducts[familySubfamily] = {
-                                                        products: [],
-                                                        unitOfMeasure: unitOfMeasure,
-                                                        familySubfamily: familySubfamily
-                                                    };
-                                                }
-                                                groupedProducts[familySubfamily].products.push({
-                                                    productName: ajustarNomeProduto(productName), // Ajustando o nome do produto aqui
-                                                    productPrice: productPrice,
-                                                    distributorPrice: distributorPrice
-                                                });
-                                            } else {
-                                                // Aqui adicionamos a verificação para substituir os nomes dos produtos da família/subfamília LINHAS/OVERLOQUE conforme necessário
-                                                if (family === 'LINHAS' && subFamily === 'OVERLOQUE') {
-                                                    const newProductName = (productName) => {
-                                                        if (productName.includes('LINHA 100G OVER ALFA') && !productName.includes('0100') && !productName.includes('9900')) {
-                                                            return 'LINHA 100G OVER ALFA COLOR';
-                                                        } else if (productName.includes('LINHA 500G OVER ALFA') && !productName.includes('0100') && !productName.includes('9900')) {
-                                                            return 'LINHA 500G OVER ALFA COLOR';
-                                                        }
-                                                        return productName;
-                                                    };
-                                                    existingProduct.productName = newProductName(existingProduct.productName);
-                                                }
+                                                // Se não houver um produto com o mesmo preço de venda, adicione-o ao grupo
+                                                if (!existingProduct) {
+                                                    // Adicionar o produto ao grupo correspondente
+                                                    if (!groupedProducts[familySubfamily]) {
+                                                        groupedProducts[familySubfamily] = {
+                                                            products: [],
+                                                            unitOfMeasure: unitOfMeasure,
+                                                            familySubfamily: familySubfamily
+                                                        };
+                                                    }
+                                                    groupedProducts[familySubfamily].products.push({
+                                                        productName: ajustarNomeProduto(productName), // Ajustando o nome do produto aqui
+                                                        productPrice: productPrice,
+                                                        distributorPrice: distributorPrice
+                                                    });
+                                                } else {
+                                                    // Aqui adicionamos a verificação para substituir os nomes dos produtos da família/subfamília LINHAS/OVERLOQUE conforme necessário
+                                                    if (family === 'LINHAS' && subFamily === 'OVERLOQUE') {
+                                                        const newProductName = (productName) => {
+                                                            if (productName.includes('LINHA 100G OVER ALFA') && !productName.includes('0100') && !productName.includes('9900')) {
+                                                                return 'LINHA 100G OVER ALFA COLOR';
+                                                            } else if (productName.includes('LINHA 500G OVER ALFA') && !productName.includes('0100') && !productName.includes('9900')) {
+                                                                return 'LINHA 500G OVER ALFA COLOR';
+                                                            }
+                                                            return productName;
+                                                        };
+                                                        existingProduct.productName = newProductName(existingProduct.productName);
+                                                    }
 
-                                                if (family === 'VIES ELASTICO' && (subFamily === '14MM' || subFamily === '16MM' || subFamily === '20MM' || subFamily === '25MM' || subFamily === '30MM')) {
-                                                    const newProductName = (productName) => {
-                                                        if (productName.includes('VIES EL.') && !productName.includes('BRANCO') && !productName.includes('PRETO')) {
-                                                            return `VIES EL. ${subFamily} CORES`;
-                                                        }
-                                                        return productName;
-                                                    };
-                                                    existingProduct.productName = newProductName(existingProduct.productName);
+                                                    if (family === 'VIES ELASTICO' && (subFamily === '14MM' || subFamily === '16MM' || subFamily === '20MM' || subFamily === '25MM' || subFamily === '30MM')) {
+                                                        const newProductName = (productName) => {
+                                                            if (productName.includes('VIES EL.') && !productName.includes('BRANCO') && !productName.includes('PRETO')) {
+                                                                return `VIES EL. ${subFamily} CORES`;
+                                                            }
+                                                            return productName;
+                                                        };
+                                                        existingProduct.productName = newProductName(existingProduct.productName);
+                                                    }
                                                 }
                                             }
-                                        }
-                                    });
-
-                                    const tableBody = document.querySelector('#csvTable tbody');
-                                    for (const familySubfamily in groupedProducts) {
-                                        const productGroup = groupedProducts[familySubfamily];
-
-                                        // Adicionar uma linha para a família/subfamília
-                                        const familySubfamilyRow = document.createElement('tr');
-                                        familySubfamilyRow.innerHTML = `
-        <td colspan="4" class="family-subfamily">${productGroup.familySubfamily}</td>
-    `;
-                                        tableBody.appendChild(familySubfamilyRow);
-
-                                        // Adicionar o cabeçalho Produto Unid Padrão Distribuidor
-                                        const headerRow = document.createElement('tr');
-                                        headerRow.innerHTML = `
-        <th>Produto</th>
-        <th>Unid</th>
-        <th>Padrão</th>
-        <th>Distribuidor</th>
-    `;
-                                        tableBody.appendChild(headerRow);
-
-                                        // Adicionar linhas para cada produto na família/subfamília
-                                        productGroup.products.forEach(product => {
-                                            const productRow = document.createElement('tr');
-                                            const distributorPrice = parseFloat(product.distributorPrice.replace(',', '.'));
-
-                                            productRow.innerHTML = `
-            <td>${product.productName}</td>
-            <td>${productGroup.unitOfMeasure}</td>
-            <td>${parseFloat(product.productPrice.replace(',', '.')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 })}</td>
-            <td>${isNaN(distributorPrice) ? '---------' : distributorPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 })}</td>
-        `;
-                                            tableBody.appendChild(productRow);
                                         });
-                                    }
-                                })
-                                .catch(error => console.error('Erro ao carregar o arquivo dist.csv:', error));
-                        })
-                        .catch(error => console.error('Erro ao carregar o arquivo dica.csv:', error));
-                })
-                .catch(error => console.error('Erro ao carregar o arquivo padr.csv:', error));
+
+                                        const tableBody = document.querySelector('#csvTable tbody');
+                                        for (const familySubfamily in groupedProducts) {
+                                            const productGroup = groupedProducts[familySubfamily];
+
+                                            // Adicionar uma linha para a família/subfamília
+                                            const familySubfamilyRow = document.createElement('tr');
+                                            familySubfamilyRow.innerHTML = `
+                                        <td colspan="4" class="family-subfamily">${productGroup.familySubfamily}</td>
+                                    `;
+                                            tableBody.appendChild(familySubfamilyRow);
+
+                                            // Adicionar o cabeçalho Produto Unid Padrão Distribuidor
+                                            const headerRow = document.createElement('tr');
+                                            headerRow.innerHTML = `
+                                        <th>Produto</th>
+                                        <th>Unid</th>
+                                        <th>Padrão</th>
+                                        <th>Distribuidor</th>
+                                    `;
+                                            tableBody.appendChild(headerRow);
+
+                                            // Adicionar linhas para cada produto na família/subfamília
+                                            productGroup.products.forEach(product => {
+                                                const productRow = document.createElement('tr');
+                                                const distributorPrice = parseFloat(product.distributorPrice.replace(',', '.'));
+
+                                                productRow.innerHTML = `
+                                            <td>${product.productName}</td>
+                                            <td>${productGroup.unitOfMeasure}</td>
+                                            <td>${parseFloat(product.productPrice.replace(',', '.')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 })}</td>
+                                            <td>${isNaN(distributorPrice) ? '---------' : distributorPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 })}</td>
+                                        `;
+                                                tableBody.appendChild(productRow);
+                                            });
+                                        }
+                                        // Agora que os dados estão prontos, oculte a animação de carregamento e mostre a tabela
+                                        showContent();
+                                    })
+                                    .catch(error => console.error('Erro ao carregar o arquivo dist.csv:', error));
+                            })
+                            .catch(error => console.error('Erro ao carregar o arquivo dica.csv:', error));
+                    })
+                    .catch(error => console.error('Erro ao carregar o arquivo padr.csv:', error));
+            }, 500); // Espera 500 milissegundos antes de carregar os dados da tabela
         };
 
+        function showContent() {
+            document.getElementById('loader').style.display = 'none';
+            document.querySelector('.content-container').classList.remove('loaded');
+        }
     </script>
 
 </body>
