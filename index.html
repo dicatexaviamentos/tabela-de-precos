@@ -175,7 +175,7 @@
             "REBOBINAR", "COSTURA", "TRICHE", "ALVEJADO", "ALFA FOSCA",
             "ALFA MISTA", "AMOSTRA", "FOTOCROMIA", "GLOW",
             "TEMPERATURA", "LINHA BORDAR", "CORES", "ENFRALDADO", "WACKY", "GORGURAO",
-            "22MM",
+            "22MM", "NW 1.40LG", "METALIC", "CONFECCAO", "DIVERSOS",
         ];
 
         function palavraDeveSerIgnorada(palavra) {
@@ -215,6 +215,22 @@
                 return 'LINHA P/ BORDAR ALFA';
             } else if (nomeProduto.includes('LINHA P/ BORDAR BETA')) {
                 return 'LINHA P/ BORDAR BETA';
+            } else if (nomeProduto.includes('NW CORTADO')) {
+                return 'NW CORTADO (20MM,25MM,100MM) BRANCO E PRETO';
+            } else if (nomeProduto.includes('FITILHO DE NW')) {
+                return 'FITILHO DE NW GR100 BRANCO E PRETO';
+            } else if (nomeProduto.includes('FECHO DE CONTATO 50MM')) {
+                return 'FECHO DE CONTATO 50MM BRANCO E PRETO';
+            } else if (nomeProduto.includes('FECHO DE CONTATO 25MM')) {
+                return 'FECHO DE CONTATO 25MM BRANCO E PRETO';
+            } else if (nomeProduto.includes('FECHO DE CONTATO 20MM')) {
+                return 'FECHO DE CONTATO 20MM BRANCO E PRETO';
+            } else if (nomeProduto.includes('FECHO DE CONTATO 16MM')) {
+                return 'FECHO DE CONTATO 16MM BRANCO E PRETO';
+            } else if (nomeProduto.includes('FECHO DE CONTATO 100MM')) {
+                return 'FECHO DE CONTATO 100MM BRANCO E PRETO';
+            } else if (nomeProduto.includes('E.V.A 3.5MM D40')) {
+                return 'E.V.A 3.5MM D40 (VERIFICAR CORES)';
 
 
             } else {
@@ -324,6 +340,32 @@
                                                         };
                                                         existingProduct.productName = newProductName(existingProduct.productName);
                                                     }
+
+                                                    if (family === 'VIES NORMAL' && (subFamily === '14 MM' || subFamily === '16 MM' || subFamily === '20 MM' || subFamily === '25 MM' || subFamily === '30 MM')) {
+                                                        const newProductName = (productName) => {
+                                                            if (productName.includes('VIES NOR.') && !productName.includes('BRANCO') && !productName.includes('PRETO')) {
+                                                                return `VIES NOR. ${subFamily} CORES`;
+                                                            }
+                                                            return productName;
+                                                        };
+                                                        existingProduct.productName = newProductName(existingProduct.productName);
+                                                    }
+
+                                                    if (family === 'SUTACHE' && (subFamily === 'CORES')) {
+                                                        const newProductName = (productName) => {
+                                                            if (productName.includes('SUTACHE ALFA') && !productName.includes('0100') && !productName.includes('9900')) {
+                                                                return `SUTACHE ALFA ${subFamily}`;
+                                                            }
+                                                            return productName;
+                                                        };
+                                                        existingProduct.productName = newProductName(existingProduct.productName);
+                                                    }
+
+
+
+
+
+                                                    
                                                 }
                                             }
                                         });
