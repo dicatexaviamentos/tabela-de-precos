@@ -1,85 +1,60 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dicatex Aviamentos</title>
+    <title>Visualização de Arquivos CSV</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
             margin: 0;
             padding: 0;
-            background-color: #f8f9fa;
+            font-size: 12px;
         }
 
-        #container {
-            width: 21cm;
-            margin: 0 auto;
-            padding: 1cm;
-            background-color: #ffffff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
+        h2 {
             text-align: center;
-            margin-top: 0;
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        #processar,
-        #imprimir {
-            display: inline-block;
-            margin-bottom: 20px;
-            padding: 10px 20px;
-            background-color: #1d0c5c;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-
-        #processar:hover,
-        #imprimir:hover {
-            background-color: #1f1c77;
+            color: #333;
+            padding-top: 20px;
         }
 
         table {
-            width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
-            display: none;
-            /* Inicialmente ocultar a tabela */
+            width: 21cm;
+            background-color: #fff;
+            margin: 20px auto;
         }
 
         th,
         td {
-            border: 1px solid #dddddd;
-            padding: 8px;
-            font-size: 12px; /* Alterado o tamanho da fonte */
-            /* Definindo o tamanho da fonte para as células */
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
         }
 
         th {
             background-color: #f2f2f2;
-            font-weight: bold;
         }
 
-        @media print {
-            /* Esconder o botão de processar, botão de imprimir, imagens e botão de impressão durante a impressão */
-            #processar,
-            #imprimir,
-            img,
-            button {
-                display: none;
+        th:nth-child(2),
+        td:nth-child(2),
+        th:nth-child(3),
+        td:nth-child(3),
+        th:nth-child(4),
+        td:nth-child(4) {
+            text-align: center;
+        }
+
+        .family-subfamily {
+            font-weight: bold;
+            background-color: #e9ecef;
+        }
+
+        @media screen and (max-width: 600px) {
+            table {
+                width: 90%;
             }
         }
     </style>
@@ -87,314 +62,217 @@
 
 <body>
 
-    <div id="container">
-        <img src="cabecalho.jpg" alt="Cabeçalho" style="display: block; margin: 0 auto; width: 100%; max-width: 100%;" />
-        <h1>Tabela de Preços Dicatex</h1>
+    <h2>Visualização de Arquivos CSV</h2>
 
-        <div>
-            <button id="processar">Processar</button>
-            <button id="imprimir" onclick="window.print()">Imprimir</button>
-        </div>
+    <table id="csvTable">
+        <thead>
 
-        <table id="resultado">
-            <thead>
-                <tr>
-                    <th>Categoria</th>
-                    <th>Produto</th>
-                    <th>Unid</th> 
-                    <th>Padrão</th>
-                    <th>Distribuidor</th> 
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-        <img src="rodape.jpg" alt="Rodapé" style="display: block; margin: 20px auto 0; width: 100%; max-width: 100%;" />
-    </div>
+        </thead>
+        <tbody>
+            <!-- Os dados serão adicionados aqui -->
+        </tbody>
+    </table>
 
     <script>
+        const ignorarPalavras = [
+            "2ª", "SEGUNDA", "2º", "KIT", "*",
+            "BONES", "CONE", "BORRACHA", "BEHA", "CARNEIRA",
+            "CORANTE", "FLAVINA", "ESTAMPA", "100%", "INDUSTRIALIZACAO",
+            "REBOBINAR", "COSTURA", "TRICHE", "ALVEJADO", "ALFA FOSCA",
+            "ALFA MISTA", "AMOSTRA", "FOTOCROMIA", "GLOW",
+            "TEMPERATURA", "LINHA BORDAR", "CORES", "ENFRALDADO", "WACKY", "GORGURAO",
+            "22MM",
+        ];
 
-function abreviarUnidade(unidade) {
-    // Mapeamento de unidades para suas formas abreviadas
-    const abreviacoes = {
-        "METRO": "m",
-        "GRAMA": "g",
-        "MILIMETRO": "mm",
-        // Adicione outras unidades e suas abreviações conforme necessário
-    };
+        function palavraDeveSerIgnorada(palavra) {
+            return ignorarPalavras.some(palavraIgnorada => palavra.includes(palavraIgnorada));
+        }
 
-    // Verificar se a unidade está no mapeamento
-    if (abreviacoes.hasOwnProperty(unidade)) {
-        return abreviacoes[unidade];
-    } else {
-        // Se a unidade não estiver no mapeamento, retorne a unidade original
-        return unidade;
-    }
-}
-        document.getElementById("processar").addEventListener("click", function () {
-    // Fazendo a leitura dos arquivos CSV
-    fetch('tabpadrao.csv')
-        .then(response => response.text())
-        .then(tabpadraoData => {
-            fetch('bddic.csv')
-                .then(response => response.text())
-                .then(bddicData => {
-                    fetch('tabdist.csv') // Obtendo o terceiro arquivo
-                        .then(response => response.text())
-                        .then(tabdistData => {
-                            processarResultado(tabpadraoData, bddicData, tabdistData); // Passando todos os dados para processar
-                        });
-                });
-        });
-});
+        function ajustarNomeProduto(nomeProduto) {
+            if (nomeProduto.includes('AGULHA GALONEIRA B 63')) {
+                return 'AGULHA GALONEIRA B 63';
+            } else if (nomeProduto.includes('AGULHA GALONEIRA UY 128')) {
+                return 'AGULHA GALONEIRA UY 128';
+            } else if (nomeProduto.includes('AGULHA DP X 17')) {
+                return 'AGULHA DP X 17';
+            } else if (nomeProduto.includes('AGULHA ELASTIQUEIRA UY 113')) {
+                return 'AGULHA ELASTIQUEIRA UY 113';
+            } else if (nomeProduto.includes('AGULHA OVERLOQUE B 27')) {
+                return 'AGULHA OVERLOQUE B 27';
+            } else if (nomeProduto.includes('AGULHA P/ RETA CABO FINO')) {
+                return 'AGULHA P/ RETA CABO FINO';
+            } else if (nomeProduto.includes('AGULHA P/ RETA CABO GROS')) {
+                return 'AGULHA P/ RETA CABO GROS';
+            } else if (nomeProduto.includes('AGULHA P/BORDAR DB X K5')) {
+                return 'AGULHA P/BORDAR DB X K5';
+            } else if (nomeProduto.includes('AGULHA PONTA LANÇA 134 PCL')) {
+                return 'AGULHA PONTA LANÇA 134 PCL';
+            } else if (nomeProduto.includes('AGULHA TQ X 1')) {
+                return 'AGULHA TQ X 1';
+            } else if (nomeProduto.includes('AGULHA 134 SAN DOURADA')) {
+                return 'AGULHA 134 SAN DOURADA';
+            } else if (nomeProduto.includes('LINHA ALFA 36 5000M')) {
+                return 'LINHA ALFA 36 5000M';
+            } else if (nomeProduto.includes('LINHA ALFA 50 5000M')) {
+                return 'LINHA ALFA 50 5000M';
+            } else if (nomeProduto.includes('LINHA ALFA 80 5000M')) {
+                return 'LINHA ALFA 80 5000M';
+            } else if (nomeProduto.includes('LINHA P/ BORDAR ALFA')) {
+                return 'LINHA P/ BORDAR ALFA';
+            } else if (nomeProduto.includes('LINHA P/ BORDAR BETA')) {
+                return 'LINHA P/ BORDAR BETA';
 
-function processarResultado(tabpadraoData, bddicData, tabdistData) {
-    const tableBody = document.querySelector('#resultado tbody');
-    tableBody.innerHTML = ''; // Limpar tabela anterior, se houver
 
-    const tabpadraoLinhas = tabpadraoData.split('\n').slice(1);
-    const bddicLinhas = bddicData.split('\n').slice(1);
-    const tabdistLinhas = tabdistData.split('\n').slice(1); // Separando linhas do novo arquivo
-
-    const ignorarPalavras = [
-        "2ª", "SEGUNDA", "2º", "KIT", "*",
-        "BONES", "CONE", "BORRACHA", "BEHA", "CARNEIRA",
-        "CORANTE", "FLAVINA", "ESTAMPA", "100%", "INDUSTRIALIZACAO",
-        "REBOBINAR", "COSTURA", "TRICHE", "ALVEJADO", "ALFA FOSCA",
-        "ALFA MISTA", "AMOSTRA", "FOTOCROMIA", "GLOW",
-        "TEMPERATURA", "LINHA BORDAR", "CORES"
-    ];
-
-    const familiasSubfamilias = {};
-
-    tabpadraoLinhas.forEach(tabpadraoLinha => {
-        const tabpadraoCols = tabpadraoLinha.split(';');
-        const nomeProdutoTabpadrao = tabpadraoCols[2];
-        const descricaoProdutoTabpadrao = tabpadraoCols[2];
-        const precoVenda = parseFloat(tabpadraoCols[3].replace(',', '.'));
-
-        // Verifica se o preço de venda é um número válido
-        if (!isNaN(precoVenda)) {
-            const precoVendaFormatted = precoVenda.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço padrão
-
-            // Verifica se a descrição do produto contém alguma palavra a ser ignorada
-            if (!ignorarPalavras.some(palavra => descricaoProdutoTabpadrao.includes(palavra))) {
-                const produtoBddic = bddicLinhas.find(bddicLinha => {
-                    const bddicCols = bddicLinha.split(';');
-                    const nomeProdutoBddic = bddicCols[4];
-                    return nomeProdutoBddic === nomeProdutoTabpadrao;
-                });
-
-                if (produtoBddic) {
-                    const bddicCols = produtoBddic.split(';');
-                    const familiaSubfamilia = `${bddicCols[0]} - ${bddicCols[1]}`;
-                    const familia = bddicCols[0];
-                    const subfamilia = bddicCols[1];
-
-                    // Obtendo o preço do distribuidor
-                    const produtoTabdist = tabdistLinhas.find(tabdistLinha => {
-                        const tabdistCols = tabdistLinha.split(';');
-                        const nomeProdutoTabdist = tabdistCols[2];
-                        return nomeProdutoTabdist === nomeProdutoTabpadrao;
-                    });
-
-                    let precoDistribuidorFormatted = '-------'; // Definindo um hífen como padrão para os preços não encontrados
-
-                    if (produtoTabdist) {
-                        const tabdistCols = produtoTabdist.split(';');
-                        const precoDistribuidorValue = parseFloat(tabdistCols[3].replace(',', '.')); // Formatando preço de distribuidor
-
-                        // Verifica se o preço de distribuidor é um número válido
-                        if (!isNaN(precoDistribuidorValue)) {
-                            precoDistribuidorFormatted = precoDistribuidorValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); // Formatando preço de distribuidor
-                        }
-                    }
-
-                    // Buscar a unidade de medida
-                    const unidadeMedida = bddicCols[12]; // A coluna 13 (índice 12) contém a unidade de medida
-
-                    let existingRow = tableBody.querySelector(`tr[data-subfamilia="${familia}-${subfamilia}"]`);
-                    if (!existingRow) {
-    existingRow = document.createElement('tr');
-    existingRow.setAttribute('data-subfamilia', `${familia}-${subfamilia}`);
-    existingRow.innerHTML = `<td>${familiaSubfamilia}</td><td>${formatarNomeProduto(nomeProdutoTabpadrao)}</td><td>${unidadeMedida}</td><td>${precoVendaFormatted}</td><td>${precoDistribuidorFormatted}</td>`;
-    tableBody.appendChild(existingRow);
-    familiasSubfamilias[`${familia}-${subfamilia}`] = [{ precoVenda: precoVendaFormatted, precoDistribuidor: precoDistribuidorFormatted, nomeProdutoTabpadrao }];
-} else {
-    const existingProducts = familiasSubfamilias[`${familia}-${subfamilia}`];
-    const hasPrice = existingProducts.some(product => product.precoVenda === precoVendaFormatted);
-    if (!hasPrice) {
-        existingProducts.push({ precoVenda: precoVendaFormatted, precoDistribuidor: precoDistribuidorFormatted, nomeProdutoTabpadrao });
-        const productNames = existingProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
-        const priceCell = existingRow.querySelector('td:nth-child(4)'); // Coluna do Padrão
-        priceCell.innerHTML += `<br>${precoVendaFormatted}`;
-        const distributorPriceCell = existingRow.querySelector('td:nth-child(5)'); // Coluna do Distribuidor
-        distributorPriceCell.innerHTML += `<br>${precoDistribuidorFormatted}`;
-        const productCell = existingRow.querySelector('td:nth-child(2)'); // Coluna do Produto
-        productCell.innerHTML = productNames;
-        const unitCell = existingRow.querySelector('td:nth-child(3)'); // Coluna da Unidade de Medida
-        unitCell.innerHTML = unidadeMedida;
-
-                            // Verifica se a subfamília atual corresponde àquelas que precisam de ajuste no nome do produto
-                            if (familia === 'VIES ELASTICO' && (subfamilia === '14MM' || subfamilia === '16MM' || subfamilia === '20MM' || subfamilia === '25MM' || subfamilia === '30MM')) {
-                                const productNameCounts = {};
-                                existingProducts.forEach(product => {
-                                    productNameCounts[product.nomeProdutoTabpadrao] = (productNameCounts[product.nomeProdutoTabpadrao] || 0) + 1;
-                                });
-
-                                let mostRepeatedProductName = '';
-                                let maxCount = 0;
-                                for (const productName in productNameCounts) {
-                                    if (productNameCounts[productName] > maxCount && !productName.includes('BRANCO') && !productName.includes('PRETO')) {
-                                        maxCount = productNameCounts[productName];
-                                        mostRepeatedProductName = productName;
-                                    }
-                                }
-
-                                // Substituir o nome do produto mais repetido pelo desejado
-                                const newProductName = `VIES EL. ${subfamilia} COLOR`;
-                                if (mostRepeatedProductName !== newProductName) {
-                                    productCell.innerHTML = productNames.replace(new RegExp(mostRepeatedProductName, 'g'), newProductName);
-                                }
-                            }
-
-                            if (familia === 'LINHAS' && subfamilia === 'OVERLOQUE') {
-                                const newProductName = (productName) => {
-                                    if (productName.includes('LINHA 100G OVER ALFA') && !productName.includes('9900') && !productName.includes('0100')) {
-                                        return 'LINHA 100G OVER ALFA COLOR';
-                                    } else if (productName.includes('LINHA 500G OVER ALFA') && !productName.includes('9900') && !productName.includes('0100')) {
-                                        return 'LINHA 500G OVER ALFA COLOR';
-                                    }
-                                    return productName;
-                                };
-
-                                const updatedProducts = existingProducts.map(product => ({
-                                    ...product,
-                                    nomeProdutoTabpadrao: newProductName(product.nomeProdutoTabpadrao)
-                                }));
-
-                                // Atualizar a célula do produto com os nomes de produtos atualizados
-                                const updatedProductNames = updatedProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
-                                productCell.innerHTML = updatedProductNames;
-
-                                // Atualizar o array de produtos existentes com os produtos atualizados
-                                familiasSubfamilias[`${familia}-${subfamilia}`] = updatedProducts;
-                            }
-
-                            if (familia === 'LINHAS' && subfamilia === 'BORDAR') {
-                                const newProductName = (productName) => {
-                                    if (productName.includes('P/ BORDAR ALFA') && !productName.includes('9900') && !productName.includes('0100')) {
-                                        return 'LINHA P/ BORDAR ALFA';
-                                    } else if (productName.includes('P/ BORDAR BETA') && !productName.includes('9900') && !productName.includes('0100')) {
-                                        return 'LINHA P/ BORDAR BETA';
-                                    }
-                                    return productName;
-                                };
-
-                                const updatedProducts = existingProducts.map(product => ({
-                                    ...product,
-                                    nomeProdutoTabpadrao: newProductName(product.nomeProdutoTabpadrao)
-                                }));
-
-                                // Atualizar a célula do produto com os nomes de produtos atualizados
-                                const updatedProductNames = updatedProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
-                                productCell.innerHTML = updatedProductNames;
-
-                                // Atualizar o array de produtos existentes com os produtos atualizados
-                                familiasSubfamilias[`${familia}-${subfamilia}`] = updatedProducts;
-                            }
-
-                            if (familia === 'AGULHAS' && subfamilia === 'GALONEIRA') {
-                                const newProductName = (productName) => {
-                                    if (productName.includes('AGULHA GALONEIRA B 63')) {
-                                        return 'AGULHA GALONEIRA B 63';
-                                    } else if (productName.includes('AGULHA GALONEIRA UY 128')) {
-                                        return 'AGULHA GALONEIRA UY 128';
-                                    }
-                                    return productName;
-                                };
-
-                                const updatedProducts = existingProducts.map(product => ({
-                                    ...product,
-                                    nomeProdutoTabpadrao: newProductName(product.nomeProdutoTabpadrao)
-                                }));
-
-                                // Atualizar a célula do produto com os nomes de produtos atualizados
-                                const updatedProductNames = updatedProducts.map(product => product.nomeProdutoTabpadrao).join('<br>');
-                                productCell.innerHTML = updatedProductNames;
-
-                                // Atualizar o array de produtos existentes com os produtos atualizados
-                                familiasSubfamilias[`${familia}-${subfamilia}`] = updatedProducts;
-                            }
-                        }
-                    }
-
-                    // Exibir a tabela após o processamento dos resultados
-                    document.querySelector('table').style.display = 'table';
-                }
+            } else {
+                return nomeProduto;
             }
         }
-    });
 
-    // Adicionando famílias/subfamílias sem preço de distribuidor à tabela
-    tabdistLinhas.forEach(tabdistLinha => {
-        const tabdistCols = tabdistLinha.split(';');
-        const nomeProdutoTabdist = tabdistCols[2];
-        const familiaTabdist = tabdistCols[0];
-        const subfamiliaTabdist = tabdistCols[1];
-        const precoDistribuidorValue = parseFloat(tabdistCols[3].replace(',', '.'));
+        window.onload = function () {
+            // Carregar o arquivo padr.csv
+            fetch('padr.csv')
+                .then(response => response.text())
+                .then(data => {
+                    const rows = data.split('\n').slice(8); // Ignorar cabeçalho e começar a leitura na linha 9
 
-        if (!isNaN(precoDistribuidorValue)) {
-            return; // Se tiver preço de distribuidor, não precisa ser adicionado novamente
-        }
+                    // Carregar o arquivo dica.csv
+                    fetch('dica.csv')
+                        .then(response => response.text())
+                        .then(dicaData => {
+                            const dicaRows = dicaData.split('\n').slice(1); // Ignorar cabeçalho
 
-        const existingRow = tableBody.querySelector(`tr[data-subfamilia="${familiaTabdist}-${subfamiliaTabdist}"]`);
-        if (!existingRow) {
-            const familiaSubfamilia = `${familiaTabdist} - ${subfamiliaTabdist}`;
-            const newRow = document.createElement('tr');
-            newRow.setAttribute('data-subfamilia', `${familiaTabdist}-${subfamiliaTabdist}`);
-            newRow.innerHTML = `<td>${familiaSubfamilia}</td><td>-</td><td>-</td><td>-</td><td>-</td>`;
-            tableBody.appendChild(newRow);
-        }
-    });
-}
+                            // Carregar o arquivo dist.csv
+                            fetch('dist.csv')
+                                .then(response => response.text())
+                                .then(distData => {
+                                    const distRows = distData.split('\n').slice(1); // Ignorar cabeçalho
 
-function formatarNomeProduto(nomeProduto) {
-    if (nomeProduto.includes('LINHA ALFA P/CANELINHA 150')) {
-        return 'LINHA ALFA P/CANELINHA 150 15000M';
-    } else if (nomeProduto.includes('LINHA ALFA 120 10000M')) {
-        return 'LINHA ALFA 120 10000M';
-    } else if (nomeProduto.includes('LINHA ALFA 120 1500J')) {
-        return 'LINHA ALFA 120 1500J';
-    } else if (nomeProduto.includes('LINHA ALFA 120 5000M')) {
-        return 'LINHA ALFA 120 5000M';
-    } else if (nomeProduto.includes('LINHA ALFA 36 5000M')) {
-        return 'LINHA ALFA 36 5000M';
-    } else if (nomeProduto.includes('LINHA ALFA 50 5000M')) {
-        return 'LINHA ALFA 50 5000M';
-    } else if (nomeProduto.includes('LINHA ALFA 80 5000M')) {
-        return 'LINHA ALFA 80 5000M';
-    } else if (nomeProduto.includes('LINHA ALFA ALGODAO 120')) {
-        return 'LINHA ALFA ALGODAO 120';
-    } else if (nomeProduto.includes('LINHA ALFA ALGODAO 50')) {
-        return 'LINHA ALFA ALGODAO 50';
-    } else if (nomeProduto.includes('LINHA ALFA ALGODAO 80')) {
-        return 'LINHA ALFA ALGODAO 80';
-    } else if (nomeProduto.includes('LINHA BETA 120')) {
-        return 'LINHA BETA 120';
-    } else if (nomeProduto.includes('LINHA BETA 50')) {
-        return 'LINHA BETA 50';
-    } else if (nomeProduto.includes('LINHA BETA 80')) {
-        return 'LINHA BETA 80';
-    } else if (nomeProduto.includes('LINHA GAMA 120')) {
-        return 'LINHA GAMA 120';
-    } else if (nomeProduto.includes('LINHA GAMA 50')) {
-        return 'LINHA GAMA 50';
-    } else if (nomeProduto.includes('LINHA GAMA 80')) {
-        return 'LINHA GAMA 80';
-    } else {
-        return nomeProduto;
-    }
-}
+                                    const groupedProducts = {};
+
+                                    // Agrupar os produtos por família/subfamília
+                                    rows.forEach(row => {
+                                        const columns = row.split(';');
+                                        const productName = columns[2];
+                                        const productPrice = columns[3];
+
+                                        // Procurar o nome do produto no arquivo dica.csv
+                                        const dicaRow = dicaRows.find(dicaRow => {
+                                            const dicaColumns = dicaRow.split(';');
+                                            return dicaColumns[4] === productName;
+                                        });
+
+                                        // Procurar o nome do produto no arquivo dist.csv
+                                        let distributorPrice = '---'; // Preço do distribuidor padrão
+                                        const distRow = distRows.find(distRow => {
+                                            const distColumns = distRow.split(';');
+                                            return distColumns[2] === productName;
+                                        });
+
+                                        if (distRow) {
+                                            const distColumns = distRow.split(';');
+                                            distributorPrice = distColumns[3];
+                                        }
+
+                                        if (dicaRow && !palavraDeveSerIgnorada(productName)) {
+                                            const dicaColumns = dicaRow.split(';');
+                                            const unitOfMeasure = dicaColumns[11];
+                                            const family = dicaColumns[0];
+                                            const subFamily = dicaColumns[1];
+                                            const familySubfamily = `${family}/${subFamily}`;
+
+                                            // Verificar se já existe um produto com o mesmo preço de venda no grupo
+                                            const existingProduct = groupedProducts[familySubfamily]?.products.find(product => product.productPrice === productPrice);
+
+                                            // Se não houver um produto com o mesmo preço de venda, adicione-o ao grupo
+                                            if (!existingProduct) {
+                                                // Adicionar o produto ao grupo correspondente
+                                                if (!groupedProducts[familySubfamily]) {
+                                                    groupedProducts[familySubfamily] = {
+                                                        products: [],
+                                                        unitOfMeasure: unitOfMeasure,
+                                                        familySubfamily: familySubfamily
+                                                    };
+                                                }
+                                                groupedProducts[familySubfamily].products.push({
+                                                    productName: ajustarNomeProduto(productName), // Ajustando o nome do produto aqui
+                                                    productPrice: productPrice,
+                                                    distributorPrice: distributorPrice
+                                                });
+                                            } else {
+                                                // Aqui adicionamos a verificação para substituir os nomes dos produtos da família/subfamília LINHAS/OVERLOQUE conforme necessário
+                                                if (family === 'LINHAS' && subFamily === 'OVERLOQUE') {
+                                                    const newProductName = (productName) => {
+                                                        if (productName.includes('LINHA 100G OVER ALFA') && !productName.includes('0100') && !productName.includes('9900')) {
+                                                            return 'LINHA 100G OVER ALFA COLOR';
+                                                        } else if (productName.includes('LINHA 500G OVER ALFA') && !productName.includes('0100') && !productName.includes('9900')) {
+                                                            return 'LINHA 500G OVER ALFA COLOR';
+                                                        }
+                                                        return productName;
+                                                    };
+                                                    existingProduct.productName = newProductName(existingProduct.productName);
+                                                }
+
+                                                if (family === 'VIES ELASTICO' && (subFamily === '14MM' || subFamily === '16MM' || subFamily === '20MM' || subFamily === '25MM' || subFamily === '30MM')) {
+                                                    const newProductName = (productName) => {
+                                                        if (productName.includes('VIES EL.') && !productName.includes('BRANCO') && !productName.includes('PRETO')) {
+                                                            return `VIES EL. ${subFamily} CORES`;
+                                                        }
+                                                        return productName;
+                                                    };
+                                                    existingProduct.productName = newProductName(existingProduct.productName);
+                                                }
+                                            }
+                                        }
+                                    });
+
+                                    const tableBody = document.querySelector('#csvTable tbody');
+                                    for (const familySubfamily in groupedProducts) {
+                                        const productGroup = groupedProducts[familySubfamily];
+
+                                        // Adicionar uma linha para a família/subfamília
+                                        const familySubfamilyRow = document.createElement('tr');
+                                        familySubfamilyRow.innerHTML = `
+        <td colspan="4" class="family-subfamily">${productGroup.familySubfamily}</td>
+    `;
+                                        tableBody.appendChild(familySubfamilyRow);
+
+                                        // Adicionar o cabeçalho Produto Unid Padrão Distribuidor
+                                        const headerRow = document.createElement('tr');
+                                        headerRow.innerHTML = `
+        <th>Produto</th>
+        <th>Unid</th>
+        <th>Padrão</th>
+        <th>Distribuidor</th>
+    `;
+                                        tableBody.appendChild(headerRow);
+
+                                        // Adicionar linhas para cada produto na família/subfamília
+                                        productGroup.products.forEach(product => {
+                                            const productRow = document.createElement('tr');
+                                            const distributorPrice = parseFloat(product.distributorPrice.replace(',', '.'));
+
+                                            productRow.innerHTML = `
+            <td>${product.productName}</td>
+            <td>${productGroup.unitOfMeasure}</td>
+            <td>${parseFloat(product.productPrice.replace(',', '.')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 })}</td>
+            <td>${isNaN(distributorPrice) ? '---------' : distributorPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 })}</td>
+        `;
+                                            tableBody.appendChild(productRow);
+                                        });
+                                    }
+
+
+
+
+
+
+                                })
+                                .catch(error => console.error('Erro ao carregar o arquivo dist.csv:', error));
+                        })
+                        .catch(error => console.error('Erro ao carregar o arquivo dica.csv:', error));
+                })
+                .catch(error => console.error('Erro ao carregar o arquivo padr.csv:', error));
+        };
 
     </script>
 
